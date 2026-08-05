@@ -11,6 +11,7 @@ import seaborn as sns
 from sklearn.linear_model import LinearRegression
 from sklearn.metrics import mean_squared_error, r2_score, mean_absolute_error
 from sklearn.preprocessing import StandardScaler
+from sklearn.model_selection import train_test_split
 import warnings
 
 warnings.filterwarnings('ignore')
@@ -89,32 +90,61 @@ print("="*70)
 # Features for MLR
 X = df[['MIN', 'MAX', 'HUMIDITY', 'RAINFALL']].values
 y = df['DENGUE'].values
+features = ['MIN Temp', 'MAX Temp', 'HUMIDITY', 'RAINFALL']
 
-# Train MLR model
+# 80/20 train-test split (same convention as the SLR baseline report)
+X_train, X_test, y_train, y_test = train_test_split(
+    X, y, test_size=0.2, random_state=42
+)
+
+# Train MLR model on the training split
+mlr_model = LinearRegression()
+mlr_model.fit(X_train, y_train)
+
+# Predictions on train and test splits
+y_train_pred = mlr_model.predict(X_train)
+y_test_pred = mlr_model.predict(X_test)
+
+# Train-set metrics
+train_mse = mean_squared_error(y_train, y_train_pred)
+train_rmse = np.sqrt(train_mse)
+train_mae = mean_absolute_error(y_train, y_train_pred)
+train_r2 = r2_score(y_train, y_train_pred)
+
+# Test-set metrics
+test_mse = mean_squared_error(y_test, y_test_pred)
+test_rmse = np.sqrt(test_mse)
+test_mae = mean_absolute_error(y_test, y_test_pred)
+test_r2 = r2_score(y_test, y_test_pred)
+
+print(f"\nTrain Set Performance ({len(X_train)} samples):")
+print(f"  • R² Score:        {train_r2:.4f}")
+print(f"  • RMSE:            {train_rmse:.4f}")
+print(f"  • MAE:             {train_mae:.4f}")
+print(f"  • MSE:             {train_mse:.4f}")
+
+print(f"\nTest Set Performance ({len(X_test)} samples):")
+print(f"  • R² Score:        {test_r2:.4f}")
+print(f"  • RMSE:            {test_rmse:.4f}")
+print(f"  • MAE:             {test_mae:.4f}")
+print(f"  • MSE:             {test_mse:.4f}")
+
+# Feature Coefficients (from the model trained on the train split)
+print(f"\nFeature Coefficients (Impact on Dengue Cases):")
+for feature, coef in zip(features, mlr_model.coef_):
+    print(f"  • {feature:15s}: {coef:8.4f}")
+print(f"  • Intercept:       {mlr_model.intercept_:8.4f}")
+
+# For the downstream monthly/seasonal analysis, forecasting, and plots below,
+# refit a production model on the FULL dataset (standard practice once the
+# train/test split above has validated the model's generalization ability).
 mlr_model = LinearRegression()
 mlr_model.fit(X, y)
-
-# Predictions
 y_pred = mlr_model.predict(X)
-
-# Model Performance Metrics
 mse = mean_squared_error(y, y_pred)
 rmse = np.sqrt(mse)
 mae = mean_absolute_error(y, y_pred)
 r2 = r2_score(y, y_pred)
-
-print(f"\nModel Performance Metrics:")
-print(f"  • R² Score:        {r2:.4f}")
-print(f"  • RMSE:            {rmse:.4f}")
-print(f"  • MAE:             {mae:.4f}")
-print(f"  • MSE:             {mse:.4f}")
-
-# Feature Coefficients
-print(f"\nFeature Coefficients (Impact on Dengue Cases):")
-features = ['MIN Temp', 'MAX Temp', 'HUMIDITY', 'RAINFALL']
-for feature, coef in zip(features, mlr_model.coef_):
-    print(f"  • {feature:15s}: {coef:8.4f}")
-print(f"  • Intercept:       {mlr_model.intercept_:8.4f}")
 
 # 3. MONTHLY ANALYSIS
 
