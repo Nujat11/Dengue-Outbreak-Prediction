@@ -1,8 +1,14 @@
 # Dengue-Outbreak-Prediction
 
 
-This project presents a machine learning approach to predict dengue outbreaks in Bangladesh using climate data. The study applies a Simple Linear Regression model to analyze the relationship between weather variables (rainfall, temperature, and humidity) and annual dengue cases.
 
-Using historical dengue and meteorological data, the model evaluates performance through MSE, RMSE, MAE, and R² metrics. Results show that rainfall is the strongest predictor of dengue outbreaks, achieving an R² score of 0.97, indicating a strong linear relationship between rainfall and dengue incidence.
+This repository demonstrates a dengue outbreak prediction pipeline for Bangladesh using climate and historical dengue data. The analysis includes both Simple Linear Regression and Multiple Linear Regression:
 
-This project serves as a transparent and interpretable baseline model for dengue prediction and highlights the potential of weather-driven early warning systems to support public health decision-making.
+- Simple Linear Regression is used as a baseline model to study the relationship between a single climate variable and dengue cases.
+- Multiple Linear Regression is then applied to incorporate multiple climate variables together (rainfall, temperature, and humidity) for more robust dengue forecasting.
+
+The main model script is available at `multi-linear regression/model.py`, and it runs data preparation, seasonal/monthly analysis, regression training, and forecasting.
+
+The code loads the `DengueAndClimateBangladesh.csv` dataset, performs seasonal and monthly analysis, trains regression models, evaluates performance with MSE, RMSE, MAE, and R², and generates visual reports showing actual vs predicted cases, feature impact, and seasonal trends.
+
+This project provides a simple, interpretable baseline for weather-driven dengue forecasting and highlights how climate variables can support early warning and public health planning.
