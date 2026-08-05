@@ -1,14 +1,17 @@
 # Dengue-Outbreak-Prediction
 
+This repository demonstrates dengue outbreak prediction for Bangladesh using climate and historical dengue data.
 
+Key components:
+- `DengueOutbreakPrediction/DengueOutbreakPrediction.ipynb` contains exploratory analysis and simple linear regression baselines on individual climate variables (minimum temperature, maximum temperature, humidity, and rainfall).
+- `multi-linear regression/model.py` trains a multiple linear regression model on combined climate features, performs monthly/seasonal analysis, and generates visualization outputs.
+- Dataset: `DengueOutbreakPrediction/Dataset/DengueAndClimateBangladesh.csv`.
 
-This repository demonstrates a dengue outbreak prediction pipeline for Bangladesh using climate and historical dengue data. The analysis includes both Simple Linear Regression and Multiple Linear Regression:
+Highlights:
+- Baseline simple linear regression models investigate how each climate variable correlates with dengue cases.
+- Multiple linear regression combines temperature, humidity, and rainfall to forecast dengue risk.
+- Evaluation metrics include MSE, RMSE, MAE, and R².
+- The current multiple linear regression model reports a test R² of 0.37 and a train R² of 0.18 on the held-out split.
+- Generated output visualizations include `dengue_mlr_analysis.png`, `dengue_feature_analysis.png`, and `dengue_seasonal_analysis.png`.
 
-- Simple Linear Regression is used as a baseline model to study the relationship between a single climate variable and dengue cases.
-- Multiple Linear Regression is then applied to incorporate multiple climate variables together (rainfall, temperature, and humidity) for more robust dengue forecasting.
-
-The main model script is available at `multi-linear regression/model.py`, and it runs data preparation, seasonal/monthly analysis, regression training, and forecasting.
-
-The code loads the `DengueAndClimateBangladesh.csv` dataset, performs seasonal and monthly analysis, trains regression models, evaluates performance with MSE, RMSE, MAE, and R², and generates visual reports showing actual vs predicted cases, feature impact, and seasonal trends.
-
-This project provides a simple, interpretable baseline for weather-driven dengue forecasting and highlights how climate variables can support early warning and public health planning.
+This project provides an interpretable, climate-driven baseline for dengue forecasting and supports public health planning by highlighting seasonal and monthly risk patterns.
