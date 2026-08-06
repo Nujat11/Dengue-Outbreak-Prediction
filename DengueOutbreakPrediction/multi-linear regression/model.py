@@ -276,7 +276,7 @@ wedges, _texts = axes[1, 0].pie(
 )
 axes[1, 0].axis('equal')
 # Place the pie chart title explicitly relative to its axes to ensure centering
-axes[1, 0].text(0.5, 1.08, 'Total Dengue Cases Distribution by Season',
+axes[1, 0].text(0.5, 1.02, 'Total Dengue Cases Distribution by Season',
                 transform=axes[1, 0].transAxes, ha='center', va='bottom',
                 fontsize=12, fontweight='bold')
 # Build legend labels that include counts and percentage values to avoid overlapping text
@@ -299,7 +299,7 @@ axes[1, 1].set_xticklabels(month_labels, rotation=45, ha='right')
 axes[1, 1].set_xlabel('Month-Year', fontsize=11, fontweight='bold')
 axes[1, 1].set_ylabel('Predicted Cases', fontsize=11, fontweight='bold')
 # Place the predictions title relative to its axes to guarantee proper alignment
-axes[1, 1].text(0.5, 1.06, 'Dengue Case Predictions (Next 12 Months)',
+axes[1, 1].text(0.5, 1.02, 'Dengue Case Predictions (Next 12 Months)',
                 transform=axes[1, 1].transAxes, ha='center', va='bottom',
                 fontsize=12, fontweight='bold')
 axes[1, 1].grid(True, alpha=0.3, axis='y')
