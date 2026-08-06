@@ -304,10 +304,12 @@ for bar in bars_future:
                     f'{int(height)}', ha='center', va='bottom', fontsize=8, fontweight='bold')
 
 # Add a figure-level title so it sits above all subplots without overlapping
-fig.suptitle('Total Dengue Cases Distribution by Season', fontsize=14, fontweight='bold', y=1.02)
-# Ensure subplots have room under the suptitle
-fig.subplots_adjust(top=0.88)
-plt.tight_layout(rect=[0, 0, 0.78, 0.86])
+fig.suptitle('Dengue Outbreak Analysis', fontsize=16, fontweight='bold', y=1.02)
+# Add subtitle (pie title) centered under the main title
+fig.text(0.5, 0.96, 'Total Dengue Cases Distribution by Season', ha='center', va='center', fontsize=12, fontweight='bold')
+# Ensure subplots have room under the suptitle/subtitle
+fig.subplots_adjust(top=0.86)
+plt.tight_layout(rect=[0, 0, 0.78, 0.84])
 plt.savefig('dengue_mlr_analysis.png', dpi=300, bbox_inches='tight')
 print("✓ Main analysis plot saved: dengue_mlr_analysis.png")
 plt.close()
