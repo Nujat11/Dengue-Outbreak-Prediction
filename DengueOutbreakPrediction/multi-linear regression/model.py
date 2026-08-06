@@ -229,7 +229,8 @@ print("GENERATING VISUALIZATIONS...")
 print("="*70)
 
 # Figure 1: Actual vs Predicted & Forecast
-fig, axes = plt.subplots(2, 2, figsize=(16, 12))
+# Increase figure height to give more room for the suptitle
+fig, axes = plt.subplots(2, 2, figsize=(16, 14))
 
 # Plot 1: Actual vs Predicted Time Series (formatted to avoid overlaps)
 axes[0, 0].plot(df['Date'], y, color='tab:blue', label='Actual Cases', linewidth=1.5, alpha=0.8)
@@ -303,8 +304,10 @@ for bar in bars_future:
                     f'{int(height)}', ha='center', va='bottom', fontsize=8, fontweight='bold')
 
 # Add a figure-level title so it sits above all subplots without overlapping
-fig.suptitle('Total Dengue Cases Distribution by Season', fontsize=14, fontweight='bold', y=0.995)
-plt.tight_layout(rect=[0, 0, 0.78, 0.88])
+fig.suptitle('Total Dengue Cases Distribution by Season', fontsize=14, fontweight='bold', y=1.02)
+# Ensure subplots have room under the suptitle
+fig.subplots_adjust(top=0.88)
+plt.tight_layout(rect=[0, 0, 0.78, 0.86])
 plt.savefig('dengue_mlr_analysis.png', dpi=300, bbox_inches='tight')
 print("✓ Main analysis plot saved: dengue_mlr_analysis.png")
 plt.close()
