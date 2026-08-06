@@ -274,8 +274,11 @@ wedges, _texts = axes[1, 0].pie(
     radius=0.75,
     wedgeprops={'edgecolor': 'white', 'linewidth': 1}
 )
-axes[1, 0].set_title('Total Dengue Cases Distribution by Season', fontsize=12, fontweight='bold', y=1.02, loc='center', x=0.5)
 axes[1, 0].axis('equal')
+# Place the pie chart title explicitly relative to its axes to ensure centering
+axes[1, 0].text(0.5, 1.08, 'Total Dengue Cases Distribution by Season',
+                transform=axes[1, 0].transAxes, ha='center', va='bottom',
+                fontsize=12, fontweight='bold')
 # Build legend labels that include counts and percentage values to avoid overlapping text
 total = seasonal_total.values.sum()
 percentages = 100.0 * seasonal_total.values / total
@@ -295,14 +298,17 @@ axes[1, 1].set_xticks(range(len(future_df)))
 axes[1, 1].set_xticklabels(month_labels, rotation=45, ha='right')
 axes[1, 1].set_xlabel('Month-Year', fontsize=11, fontweight='bold')
 axes[1, 1].set_ylabel('Predicted Cases', fontsize=11, fontweight='bold')
-axes[1, 1].set_title('Dengue Case Predictions (Next 12 Months)', fontsize=12, fontweight='bold')
+# Place the predictions title relative to its axes to guarantee proper alignment
+axes[1, 1].text(0.5, 1.06, 'Dengue Case Predictions (Next 12 Months)',
+                transform=axes[1, 1].transAxes, ha='center', va='bottom',
+                fontsize=12, fontweight='bold')
 axes[1, 1].grid(True, alpha=0.3, axis='y')
 for bar in bars_future:
     height = bar.get_height()
     axes[1, 1].text(bar.get_x() + bar.get_width()/2., height,
                     f'{int(height)}', ha='center', va='bottom', fontsize=8, fontweight='bold')
 
-plt.tight_layout(rect=[0, 0, 0.85, 0.94])
+plt.tight_layout(rect=[0, 0, 0.9, 0.92])
 plt.savefig('dengue_mlr_analysis.png', dpi=300, bbox_inches='tight')
 print("✓ Main analysis plot saved: dengue_mlr_analysis.png")
 plt.close()
