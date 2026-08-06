@@ -274,7 +274,7 @@ wedges, _texts = axes[1, 0].pie(
     radius=0.75,
     wedgeprops={'edgecolor': 'white', 'linewidth': 1}
 )
-axes[1, 0].set_title('Total Dengue Cases Distribution by Season', fontsize=10, fontweight='bold', y=1.06)
+axes[1, 0].set_title('Total Dengue Cases Distribution by Season', fontsize=12, fontweight='bold', y=1.02, loc='center', x=0.5)
 axes[1, 0].axis('equal')
 # Build legend labels that include counts and percentage values to avoid overlapping text
 total = seasonal_total.values.sum()
@@ -282,7 +282,7 @@ percentages = 100.0 * seasonal_total.values / total
 counts = seasonal_total.values.astype(int)
 legend_labels = [f"{s}: {c} ({p:.1f}%)" for s, c, p in zip(seasonal_total.index, counts, percentages)]
 # Place legend outside to the right and ensure plot area has room
-axes[1, 0].legend(wedges, legend_labels, title='Season', loc='center left', bbox_to_anchor=(1.05, 0.5), fontsize=11, frameon=False)
+axes[1, 0].legend(wedges, legend_labels, title='Season', loc='center left', bbox_to_anchor=(1.12, 0.5), fontsize=11, frameon=False)
 
 # Plot 4: Future Predictions Bar Chart
 month_labels = [pd.Timestamp(year=int(future_df.iloc[i]['Year']), 
@@ -302,7 +302,7 @@ for bar in bars_future:
     axes[1, 1].text(bar.get_x() + bar.get_width()/2., height,
                     f'{int(height)}', ha='center', va='bottom', fontsize=8, fontweight='bold')
 
-plt.tight_layout(rect=[0, 0, 0.78, 0.92])
+plt.tight_layout(rect=[0, 0, 0.85, 0.94])
 plt.savefig('dengue_mlr_analysis.png', dpi=300, bbox_inches='tight')
 print("✓ Main analysis plot saved: dengue_mlr_analysis.png")
 plt.close()
