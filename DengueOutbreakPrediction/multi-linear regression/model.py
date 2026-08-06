@@ -271,9 +271,10 @@ wedges, _texts = axes[1, 0].pie(
     labels=None,
     colors=colors_pie,
     startangle=90,
+    radius=0.85,
     wedgeprops={'edgecolor': 'white', 'linewidth': 1}
 )
-axes[1, 0].set_title('Total Dengue Cases Distribution by Season', fontsize=12, fontweight='bold', y=0.92)
+axes[1, 0].set_title('Total Dengue Cases Distribution by Season', fontsize=12, fontweight='bold', y=1.02)
 axes[1, 0].axis('equal')
 # Build legend labels that include counts and percentage values to avoid overlapping text
 total = seasonal_total.values.sum()
