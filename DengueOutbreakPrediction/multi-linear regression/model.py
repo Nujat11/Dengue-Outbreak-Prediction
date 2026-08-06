@@ -234,7 +234,6 @@ fig, axes = plt.subplots(2, 2, figsize=(16, 12))
 # Plot 1: Actual vs Predicted Time Series (formatted to avoid overlaps)
 axes[0, 0].plot(df['Date'], y, color='tab:blue', label='Actual Cases', linewidth=1.5, alpha=0.8)
 axes[0, 0].plot(df['Date'], y_pred, color='tab:red', linestyle='--', label='MLR Prediction Formula', linewidth=1.5, alpha=0.8)
-axes[0, 0].set_xlabel('Date', fontsize=11, fontweight='bold')
 axes[0, 0].set_ylabel('Number of Cases', fontsize=11, fontweight='bold')
 axes[0, 0].set_title('Dengue Cases: Actual vs MLR Predictions', fontsize=12, fontweight='bold')
 # Use year ticks and rotate labels to prevent overlapping text
@@ -263,13 +262,25 @@ for bar in bars:
     axes[0, 1].text(bar.get_x() + bar.get_width() / 2., height + 10,
                     f'{int(height)}', ha='center', va='bottom', fontsize=9, fontweight='bold')
 
-# Plot 3: Seasonal Analysis (Pie Chart)
+# Plot 3: Seasonal Analysis (Pie Chart) - improved layout and labels
 seasonal_total = df.groupby('SEASON')['DENGUE'].sum()
 colors_pie = ['#FF6B6B', '#4ECDC4', '#45B7D1', '#FFA07A']
-wedges, texts, autotexts = axes[1, 0].pie(seasonal_total.values, labels=seasonal_total.index, autopct='%1.1f%%',
-                                          colors=colors_pie, startangle=90, textprops={'fontsize': 10, 'fontweight': 'bold'})
+# place labels outside for small slices and improve pct placement
+wedges, texts, autotexts = axes[1, 0].pie(
+    seasonal_total.values,
+    labels=seasonal_total.index,
+    autopct='%1.1f%%',
+    pctdistance=0.75,
+    labeldistance=1.05,
+    colors=colors_pie,
+    startangle=90,
+    wedgeprops={'edgecolor': 'white', 'linewidth': 1}
+)
 axes[1, 0].set_title('Total Dengue Cases Distribution by Season', fontsize=12, fontweight='bold')
 axes[1, 0].axis('equal')
+for txt in texts:
+    txt.set_fontsize(11)
+    txt.set_fontweight('bold')
 for autotext in autotexts:
     autotext.set_color('white')
     autotext.set_fontweight('bold')
