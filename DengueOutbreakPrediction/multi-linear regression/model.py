@@ -9,6 +9,7 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
+import matplotlib.dates as mdates
 from sklearn.linear_model import LinearRegression
 from sklearn.metrics import mean_squared_error, r2_score, mean_absolute_error
 from sklearn.model_selection import train_test_split
@@ -230,13 +231,20 @@ print("="*70)
 # Figure 1: Actual vs Predicted & Forecast
 fig, axes = plt.subplots(2, 2, figsize=(16, 12))
 
-# Plot 1: Actual vs Predicted Time Series
-axes[0, 0].plot(df['Date'], y, 'b-', label='Actual Cases', linewidth=2)
-axes[0, 0].plot(df['Date'], y_pred, 'r--', label='MLR Prediction Formula', linewidth=2)
+# Plot 1: Actual vs Predicted Time Series (formatted to avoid overlaps)
+axes[0, 0].plot(df['Date'], y, color='tab:blue', label='Actual Cases', linewidth=1.5, alpha=0.8)
+axes[0, 0].plot(df['Date'], y_pred, color='tab:red', linestyle='--', label='MLR Prediction Formula', linewidth=1.5, alpha=0.8)
 axes[0, 0].set_xlabel('Date', fontsize=11, fontweight='bold')
 axes[0, 0].set_ylabel('Number of Cases', fontsize=11, fontweight='bold')
 axes[0, 0].set_title('Dengue Cases: Actual vs MLR Predictions', fontsize=12, fontweight='bold')
-axes[0, 0].legend(fontsize=10)
+# Use year ticks and rotate labels to prevent overlapping text
+axes[0, 0].set_xlim(df['Date'].min(), df['Date'].max())
+axes[0, 0].xaxis.set_major_locator(mdates.YearLocator())
+axes[0, 0].xaxis.set_major_formatter(mdates.DateFormatter('%Y'))
+for lbl in axes[0, 0].get_xticklabels():
+    lbl.set_rotation(45)
+# Move legend outside plot area to avoid overlapping with the plot
+axes[0, 0].legend(loc='upper left', bbox_to_anchor=(1.02, 1), borderaxespad=0, fontsize=10)
 axes[0, 0].grid(True, alpha=0.3)
 
 # Plot 2: Monthly Average Dengue Cases
