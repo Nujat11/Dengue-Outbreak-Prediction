@@ -271,10 +271,10 @@ wedges, _texts = axes[1, 0].pie(
     labels=None,
     colors=colors_pie,
     startangle=90,
-    radius=0.85,
+    radius=0.75,
     wedgeprops={'edgecolor': 'white', 'linewidth': 1}
 )
-axes[1, 0].set_title('Total Dengue Cases Distribution by Season', fontsize=12, fontweight='bold', y=1.02)
+axes[1, 0].set_title('Total Dengue Cases Distribution by Season', fontsize=10, fontweight='bold', y=1.06)
 axes[1, 0].axis('equal')
 # Build legend labels that include counts and percentage values to avoid overlapping text
 total = seasonal_total.values.sum()
@@ -302,7 +302,7 @@ for bar in bars_future:
     axes[1, 1].text(bar.get_x() + bar.get_width()/2., height,
                     f'{int(height)}', ha='center', va='bottom', fontsize=8, fontweight='bold')
 
-plt.tight_layout(rect=[0, 0, 0.88, 0.95])
+plt.tight_layout(rect=[0, 0, 0.78, 0.92])
 plt.savefig('dengue_mlr_analysis.png', dpi=300, bbox_inches='tight')
 print("✓ Main analysis plot saved: dengue_mlr_analysis.png")
 plt.close()
