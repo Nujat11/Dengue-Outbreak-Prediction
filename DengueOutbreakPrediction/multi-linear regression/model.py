@@ -229,8 +229,7 @@ print("GENERATING VISUALIZATIONS...")
 print("="*70)
 
 # Figure 1: Actual vs Predicted & Forecast
-# Increase figure height to give more room for the suptitle
-fig, axes = plt.subplots(2, 2, figsize=(16, 14))
+fig, axes = plt.subplots(2, 2, figsize=(16, 12))
 
 # Plot 1: Actual vs Predicted Time Series (formatted to avoid overlaps)
 axes[0, 0].plot(df['Date'], y, color='tab:blue', label='Actual Cases', linewidth=1.5, alpha=0.8)
@@ -275,7 +274,7 @@ wedges, _texts = axes[1, 0].pie(
     radius=0.75,
     wedgeprops={'edgecolor': 'white', 'linewidth': 1}
 )
-# remove subplot title (use figure-level suptitle to avoid overlap)
+axes[1, 0].set_title('Total Dengue Cases Distribution by Season', fontsize=10, fontweight='bold', y=1.06)
 axes[1, 0].axis('equal')
 # Build legend labels that include counts and percentage values to avoid overlapping text
 total = seasonal_total.values.sum()
@@ -303,13 +302,7 @@ for bar in bars_future:
     axes[1, 1].text(bar.get_x() + bar.get_width()/2., height,
                     f'{int(height)}', ha='center', va='bottom', fontsize=8, fontweight='bold')
 
-# Add a figure-level title so it sits above all subplots without overlapping
-fig.suptitle('Dengue Outbreak Analysis', fontsize=16, fontweight='bold', y=1.02)
-# Add subtitle (pie title) centered under the main title
-fig.text(0.5, 0.96, 'Total Dengue Cases Distribution by Season', ha='center', va='center', fontsize=12, fontweight='bold')
-# Ensure subplots have room under the suptitle/subtitle
-fig.subplots_adjust(top=0.86)
-plt.tight_layout(rect=[0, 0, 0.78, 0.84])
+plt.tight_layout(rect=[0, 0, 0.78, 0.92])
 plt.savefig('dengue_mlr_analysis.png', dpi=300, bbox_inches='tight')
 print("✓ Main analysis plot saved: dengue_mlr_analysis.png")
 plt.close()
