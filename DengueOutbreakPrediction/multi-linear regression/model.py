@@ -262,26 +262,24 @@ for bar in bars:
     axes[0, 1].text(bar.get_x() + bar.get_width() / 2., height + 10,
                     f'{int(height)}', ha='center', va='bottom', fontsize=9, fontweight='bold')
 
-# Plot 3: Seasonal Analysis (Pie Chart) - use legend to avoid label overlap
+# Plot 3: Seasonal Analysis (Pie Chart) - move percentages to legend to avoid overlap
 seasonal_total = df.groupby('SEASON')['DENGUE'].sum()
 colors_pie = ['#FF6B6B', '#4ECDC4', '#45B7D1', '#FFA07A']
-# Draw pie without text labels, show percentages inside where possible
-wedges, texts, autotexts = axes[1, 0].pie(
+# Draw pie without in-slice percentage labels
+wedges, _texts = axes[1, 0].pie(
     seasonal_total.values,
     labels=None,
-    autopct='%1.1f%%',
-    pctdistance=0.65,
     colors=colors_pie,
     startangle=90,
     wedgeprops={'edgecolor': 'white', 'linewidth': 1}
 )
 axes[1, 0].set_title('Total Dengue Cases Distribution by Season', fontsize=12, fontweight='bold', y=0.92)
 axes[1, 0].axis('equal')
-for autotext in autotexts:
-    autotext.set_color('white')
-    autotext.set_fontweight('bold')
-# Add a legend to the right to list seasons clearly
-axes[1, 0].legend(wedges, seasonal_total.index, title='Season', loc='center left', bbox_to_anchor=(1, 0.5), fontsize=11)
+# Build legend labels that include percentage values to avoid overlapping text
+total = seasonal_total.values.sum()
+percentages = 100.0 * seasonal_total.values / total
+legend_labels = [f"{s} — {p:.1f}%" for s, p in zip(seasonal_total.index, percentages)]
+axes[1, 0].legend(wedges, legend_labels, title='Season', loc='center left', bbox_to_anchor=(1, 0.5), fontsize=11)
 
 # Plot 4: Future Predictions Bar Chart
 month_labels = [pd.Timestamp(year=int(future_df.iloc[i]['Year']), 
