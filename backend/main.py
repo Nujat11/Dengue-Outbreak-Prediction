@@ -390,22 +390,22 @@ def get_current_weather(location: str = Query("Dhaka")):
 # --- PUBLIC DASHBOARD DATA ---
 
 @app.get("/api/dashboard/summary")
-def get_dashboard_summary(db: Session = Depends(get_db)):
-    # 1. Fetch latest dengue record cases
-    latest_record = db.query(DengueRecord).order_by(desc(DengueRecord.year), desc(DengueRecord.month)).first()
+def get_dashboard_summary(location: str = Query("Dhaka"), db: Session = Depends(get_db)):
+    # 1. Fetch latest dengue record cases for the specific location
+    latest_record = db.query(DengueRecord).filter(DengueRecord.location == location).order_by(desc(DengueRecord.year), desc(DengueRecord.month)).first()
     latest_cases = latest_record.cases if latest_record else 0
     latest_date = f"{latest_record.month}/{latest_record.year}" if latest_record else "N/A"
     
-    # 2. Total historical cases in database
-    total_cases = db.query(func.sum(DengueRecord.cases)).scalar() or 0
+    # 2. Total historical cases in database for the specific location
+    total_cases = db.query(func.sum(DengueRecord.cases)).filter(DengueRecord.location == location).scalar() or 0
     
-    # 3. Fetch latest prediction
-    latest_pred = db.query(Prediction).order_by(desc(Prediction.created_at)).first()
+    # 3. Fetch latest prediction for the specific location
+    latest_pred = db.query(Prediction).filter(Prediction.location == location).order_by(desc(Prediction.created_at)).first()
     pred_cases = latest_pred.predicted_cases if latest_pred else 0
     pred_risk = latest_pred.risk_level if latest_pred else "LOW"
     pred_date = f"{latest_pred.month}/{latest_pred.year}" if latest_pred else "N/A"
     
-    # 4. Generate historical data points for line charts (last 24 months)
+    # 4. Generate historical data points for line charts (last 24 months) for the specific location
     history = db.query(
         DengueRecord.year,
         DengueRecord.month,
@@ -416,7 +416,8 @@ def get_dashboard_summary(db: Session = Depends(get_db)):
         ClimateData.rainfall
     ).filter(
         DengueRecord.year == ClimateData.year,
-        DengueRecord.month == ClimateData.month
+        DengueRecord.month == ClimateData.month,
+        DengueRecord.location == location
     ).order_by(DengueRecord.year, DengueRecord.month).all()
     
     historical_chart = [
@@ -431,7 +432,7 @@ def get_dashboard_summary(db: Session = Depends(get_db)):
         for r in history[-36:] # Limit to last 3 years of records
     ]
     
-    # Calculate seasonal breakdown averages
+    # Calculate seasonal breakdown averages for the specific location
     # seasons: Monsoon (Jun-Sep), Post-Monsoon (Oct-Nov), Winter (Dec-Feb), Pre-Monsoon (Mar-May)
     seasons = {
         "Pre-Monsoon": [3, 4, 5],
@@ -442,7 +443,10 @@ def get_dashboard_summary(db: Session = Depends(get_db)):
     
     seasonal_data = {}
     for s_name, months in seasons.items():
-        avg_cases = db.query(func.avg(DengueRecord.cases)).filter(DengueRecord.month.in_(months)).scalar() or 0
+        avg_cases = db.query(func.avg(DengueRecord.cases)).filter(
+            DengueRecord.month.in_(months),
+            DengueRecord.location == location
+        ).scalar() or 0
         seasonal_data[s_name] = int(round(avg_cases))
         
     return {
