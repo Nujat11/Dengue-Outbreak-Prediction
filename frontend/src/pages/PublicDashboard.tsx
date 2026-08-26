@@ -360,14 +360,13 @@ export default function PublicDashboard() {
                         {/* Inner core circle */}
                         <circle cx={zone.x} cy={zone.y} r={isSelected ? "8" : "6"} fill={getRiskColorHex(risk)} className="group-hover:r-[9] transition-all" />
                         
-                        {/* Text Label centered inside the bubble */}
+                        {/* Text Label positioned above the bubble */}
                         <text 
                           x={zone.x} 
-                          y={zone.y} 
+                          y={(parseFloat(zone.y) / 100) * 500 - parseFloat(zone.r) - 4} 
                           textAnchor="middle" 
-                          dominantBaseline="middle" 
-                          fill={isSelected ? "#2dd4bf" : "#ffffff"} 
-                          fontSize="7.5" 
+                          fill={isSelected ? "#2dd4bf" : "#cbd5e1"} 
+                          fontSize="8" 
                           fontWeight="bold" 
                           className="pointer-events-none drop-shadow select-none"
                         >
