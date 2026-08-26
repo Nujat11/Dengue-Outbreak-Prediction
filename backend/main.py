@@ -336,13 +336,22 @@ def get_audit_logs(
 
 # --- WEATHER DATA INTEGRATION ---
 
+COORDINATES = {
+    "Dhaka": {"latitude": 23.8103, "longitude": 90.4125},
+    "Chittagong": {"latitude": 22.3569, "longitude": 91.7832},
+    "Jamalpur": {"latitude": 24.9196, "longitude": 89.9481},
+    "Sylhet": {"latitude": 24.8949, "longitude": 91.8687}
+}
+
 @app.get("/api/weather/current")
-def get_current_weather():
+def get_current_weather(location: str = Query("Dhaka")):
     import urllib.request
     import json
+    coords = COORDINATES.get(location, COORDINATES["Dhaka"])
+    lat, lon = coords["latitude"], coords["longitude"]
     url = (
         "https://api.open-meteo.com/v1/forecast?"
-        "latitude=23.8103&longitude=90.4125"
+        f"latitude={lat}&longitude={lon}"
         "&current=temperature_2m,relative_humidity_2m"
         "&daily=temperature_2m_max,temperature_2m_min,precipitation_sum"
         "&timezone=auto"
@@ -365,7 +374,7 @@ def get_current_weather():
             
             return {
                 "status": "success",
-                "location": "Dhaka",
+                "location": location,
                 "current_temp": current.get("temperature_2m", 28.0),
                 "min_temp": min_temp,
                 "max_temp": max_temp,
@@ -449,8 +458,10 @@ def get_dashboard_summary(db: Session = Depends(get_db)):
 # --- REALTIME WEATHER API ---
 
 @app.get("/api/weather/realtime")
-def get_realtime_weather():
-    url = "https://api.open-meteo.com/v1/forecast?latitude=23.8103&longitude=90.4125&current=temperature_2m,relative_humidity_2m,precipitation&daily=temperature_2m_max,temperature_2m_min,precipitation_sum&timezone=auto"
+def get_realtime_weather(location: str = Query("Dhaka")):
+    coords = COORDINATES.get(location, COORDINATES["Dhaka"])
+    lat, lon = coords["latitude"], coords["longitude"]
+    url = f"https://api.open-meteo.com/v1/forecast?latitude={lat}&longitude={lon}&current=temperature_2m,relative_humidity_2m,precipitation&daily=temperature_2m_max,temperature_2m_min,precipitation_sum&timezone=auto"
     try:
         import urllib.request
         import json
@@ -468,7 +479,7 @@ def get_realtime_weather():
             "max_temp": float(max_temp),
             "humidity": float(humidity),
             "rainfall": float(rainfall),
-            "location": "Dhaka",
+            "location": location,
             "source": "Open-Meteo API"
         }
     except Exception as e:

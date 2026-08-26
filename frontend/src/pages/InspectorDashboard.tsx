@@ -130,7 +130,7 @@ export default function InspectorDashboard({ token, username }: InspectorDashboa
     try {
       setLoading(true)
       setMessage(null)
-      const res = await fetch('/api/weather/realtime')
+      const res = await fetch(`/api/weather/realtime?location=${predInput.location}`)
       if (!res.ok) throw new Error('Failed to fetch real-time weather')
       const data = await res.json()
       
@@ -143,7 +143,7 @@ export default function InspectorDashboard({ token, username }: InspectorDashboa
       }))
       
       setMessage({ 
-        text: `Loaded live weather for Dhaka from ${data.source}: Min Temp: ${data.min_temp}°C, Max Temp: ${data.max_temp}°C, Hum: ${data.humidity}%, Rain: ${data.rainfall}mm`, 
+        text: `Loaded live weather for ${data.location} from ${data.source}: Min Temp: ${data.min_temp}°C, Max Temp: ${data.max_temp}°C, Hum: ${data.humidity}%, Rain: ${data.rainfall}mm`, 
         type: 'success' 
       })
     } catch (err: any) {
@@ -363,6 +363,7 @@ export default function InspectorDashboard({ token, username }: InspectorDashboa
                 <select className="w-full border rounded p-2 focus:ring-1 focus:ring-teal-500" value={predInput.location} onChange={e => setPredInput({...predInput, location: e.target.value})}>
                   <option value="Dhaka">Dhaka (DSCC/DNCC)</option>
                   <option value="Chittagong">Chittagong</option>
+                  <option value="Jamalpur">Jamalpur</option>
                   <option value="Sylhet">Sylhet</option>
                 </select>
               </div>
