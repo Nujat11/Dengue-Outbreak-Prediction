@@ -23,10 +23,16 @@ from .seed_data import seed_db
 
 app = FastAPI(title="Dengue Outbreak Prediction & Early Warning System", version="1.0.0")
 
-# Enable CORS for frontend local development
+# Enable CORS for frontend local development and production domain
+ALLOWED_ORIGINS = [
+    "http://localhost:5173",
+    "http://127.0.0.1:5173",
+    "https://dengueoutbreakprediction.netlify.app"
+]
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=ALLOWED_ORIGINS,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

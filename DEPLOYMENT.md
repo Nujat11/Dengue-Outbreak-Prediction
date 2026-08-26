@@ -48,10 +48,7 @@ This guide explains how to deploy the Dengue Outbreak Prediction system to produ
 1. Log in to the [Netlify Dashboard](https://app.netlify.com/).
 2. Click **Add new site** -> **Import an existing project**.
 3. Connect to your GitHub provider and select your repository.
-4. Set the following build configurations:
-   * **Base directory:** `frontend`
-   * **Build command:** `npm run build`
-   * **Publish directory:** `frontend/dist`
+4. Netlify will automatically detect the build settings from the `netlify.toml` file in the repository root.
 5. Click **Environment Variables** (or configure under Site Settings -> Environment variables after creating) and add:
    * **Key:** `VITE_API_URL`
    * **Value:** `<your-render-backend-url>` (e.g., `https://dengue-prediction-backend.onrender.com` - *Make sure not to add a trailing slash*)
