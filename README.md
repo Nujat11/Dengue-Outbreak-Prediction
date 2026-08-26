@@ -60,12 +60,6 @@ The database is pre-seeded with these testing accounts:
 | `user` | `user123` | **Public** |
 
 ---
-
-## 🌐 Production Deployment
-
-* **Live Frontend:** [https://dengueoutbreakprediction.netlify.app](https://dengueoutbreakprediction.netlify.app)
-* **Live Backend API:** [https://dengue-outbreak-prediction-backend.onrender.com](https://dengue-outbreak-prediction-backend.onrender.com) (or your specific Render service URL)
-
 Refer to **[DEPLOYMENT.md](DEPLOYMENT.md)** for detailed hosting instructions:
 * **Backend:** Deploy `backend.main:app` as a Python Web Service on **Render**.
 * **Frontend:** Build the `frontend` subfolder and publish to **Netlify** with the `VITE_API_URL` environment variable.
