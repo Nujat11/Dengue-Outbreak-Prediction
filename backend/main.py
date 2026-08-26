@@ -27,7 +27,8 @@ app = FastAPI(title="Dengue Outbreak Prediction & Early Warning System", version
 ALLOWED_ORIGINS = [
     "http://localhost:5173",
     "http://127.0.0.1:5173",
-    "https://dengueoutbreakprediction.netlify.app"
+    "https://dengueoutbreakprediction.netlify.app",
+    "https://dengue-outbreak-prediction.netlify.app"
 ]
 
 app.add_middleware(
