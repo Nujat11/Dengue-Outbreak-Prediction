@@ -1,0 +1,35 @@
+# SQLite database
+dengue.db
+dengue.db-journal
+
+# Node.js dependencies
+node_modules/
+frontend/node_modules/
+
+# Production build output
+dist/
+frontend/dist/
+
+# Python cache and bytecode
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.pytest_cache/
+.venv/
+venv/
+ENV/
+env/
+
+# Environment configurations
+.env
+.env.local
+
+# IDE configurations
+.vscode/
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
