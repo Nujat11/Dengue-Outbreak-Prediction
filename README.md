@@ -1,34 +1,65 @@
 # Dengue-Outbreak-Prediction
 
-This repository demonstrates dengue outbreak prediction for Bangladesh using climate and historical dengue data.
+[![Netlify Status](https://api.netlify.com/api/v1/badges/7bb1f7b7-29a1-4785-a44b-5f78468f3597/deploy-status)](https://app.netlify.com/projects/dengueoutbreakprediction/deploys)
 
-Key components:
-- Notebook (exploratory analysis + simple linear regression): [DengueOutbreakPrediction/Simple_Linear_Regression/DengueOutbreakPrediction.ipynb](DengueOutbreakPrediction/Simple_Linear_Regression/DengueOutbreakPrediction.ipynb)
-- Multiple Linear Regression script and analysis: [DengueOutbreakPrediction/multi-linear regression/model.py](DengueOutbreakPrediction/multi-linear%20regression/model.py#L1)
-- Dataset: [DengueOutbreakPrediction/Dataset/DengueAndClimateBangladesh.csv](DengueOutbreakPrediction/Dataset/DengueAndClimateBangladesh.csv)
+An AI-integrated full-stack web application designed to predict Dengue outbreaks, classify risk levels, plan hospital resource allocations, and issue early warnings. The system integrates historical climate data and dengue cases, applies a Multiple Linear Regression model, fetches real-time weather, and logs simulated SMS/Email notifications.
 
-Highlights:
-- Baseline simple linear regression models investigate how each climate variable correlates with dengue cases.
-- Multiple linear regression combines temperature, humidity, and rainfall to forecast dengue risk.
-- Evaluation metrics include MSE, RMSE, MAE, and R².
-- Generated output visualizations (saved to repository root by the script): `dengue_mlr_analysis.png`, `dengue_feature_analysis.png`, and `dengue_seasonal_analysis.png`.
+Developed for **CSE307 System Analysis & Design** - Independent University, Bangladesh (IUB).
 
-Quick run
-```
-python "DengueOutbreakPrediction/multi-linear regression/model.py"
-```
+---
 
-Dependencies
-```
-pip install pandas scikit-learn matplotlib seaborn joblib
-```
+## 🏗️ System Architecture
 
-Notes and limitations
-- The current forecasting step in `model.py` uses historical monthly means for climate features — this is a heuristic, not a probabilistic forecast. Use a proper time-series or exogenous-variable model for production forecasts.
-- The script currently uses a random 80/20 train/test split; for time series data prefer a time-based split (or `TimeSeriesSplit`) to avoid leakage.
-- Consider feature scaling (e.g., `StandardScaler`) and cross-validation for more robust estimates.
+- **Backend Framework:** FastAPI (Python 3.13)
+- **Frontend Framework:** React.js (Vite + TypeScript) + Tailwind CSS
+- **Visualizations:** Recharts / Chart.js
+- **Database:** SQLite (default for zero-setup local run) / fully compatible with MySQL 8.0
+- **AI Core:** Multiple Linear Regression (scikit-learn)
+- **Live Climate Data:** Open-Meteo API integration
+- **Report Generator:** ReportLab (PDF compilation)
 
-Contribution / Contact
-- Feel free to open issues or PRs. For questions, add a GitHub issue in this repository.
+---
 
-This project provides an interpretable, climate-driven baseline for dengue forecasting and supports exploratory analysis and public-health planning by highlighting seasonal and monthly risk patterns.
+## ✨ Features Implemented
+
+1. **Predictive Analytics:** Runs Multiple Linear Regression to forecast monthly dengue cases based on weather variables (Min Temp, Max Temp, Humidity, Rainfall).
+2. **Interactive Risk Map:** Color-coded SVG boundary map representing Dhaka Zones with dynamically scaled warning levels (Low, Medium, High).
+3. **Live Weather Sync:** A dedicated status bar and automated form-filler that queries Dhaka's live meteorology conditions from Open-Meteo.
+4. **Surge Calculator:** Automatically computes hospital bed allocations, Paracetamol tablets, IV fluid bags, and blood/platelet needs according to predicted cases.
+5. **PDF Report Downloader:** Standardized health administrator summaries containing charts, predictions, and recommendations.
+6. **Multi-Role Security:**
+   - **Admin:** Manages accounts, retrains ML models, edits alert thresholds, and checks audit logs.
+   - **Inspector:** Inserts weather/dengue records, runs predictions, and pulls PDF reports.
+   - **Public:** Views trends, risk maps, and reads health advisories.
+7. **Audit Trails:** Immutable activity logger capturing security, configurations, and database edits.
+
+---
+
+## 🚀 How to Run Locally
+
+You can launch the entire unified application (installing requirements, building frontend, seeding database, and starting backend) in a single command:
+
+1. Clone or open the project folder in your terminal.
+2. Run the automation script:
+   ```bash
+   python run.py
+   ```
+3. Open your browser and navigate to: **`http://localhost:8000`**
+
+### 🔑 Demo Login Credentials
+
+The database is pre-seeded with these testing accounts:
+
+| Username | Password | Role |
+|---|---|---|
+| `admin` | `admin123` | **Admin** |
+| `inspector` | `inspector123` | **Inspector** |
+| `user` | `user123` | **Public** |
+
+---
+
+## 🌐 Production Deployment
+
+Refer to **[DEPLOYMENT.md](DEPLOYMENT.md)** for detailed hosting instructions:
+* **Backend:** Deploy `backend.main:app` as a Python Web Service on **Render**.
+* **Frontend:** Build the `frontend` subfolder and publish to **Netlify** with the `VITE_API_URL` environment variable.
