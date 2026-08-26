@@ -3,17 +3,77 @@
 An AI-integrated full-stack web application designed to predict Dengue outbreaks, classify risk levels, plan hospital resource allocations, and issue early warnings. The system integrates historical climate data and dengue cases, applies a Random Forest Regressor model, fetches real-time weather, and logs simulated SMS/Email notifications.
 
 
----
-
 ## 🏗️ System Architecture
 
-- **Backend Framework:** FastAPI (Python 3.13)
-- **Frontend Framework:** React.js (Vite + TypeScript) + Tailwind CSS
-- **Visualizations:** Recharts / Chart.js
-- **Database:** SQLite (default for zero-setup local run) / fully compatible with MySQL 8.0
-- **AI Core:** Random Forest Regressor (scikit-learn)
-- **Live Climate Data:** Open-Meteo API integration
-- **Report Generator:** ReportLab (PDF compilation)
+| Layer | Technology |
+|---|---|
+| **Backend** | FastAPI (Python 3.13) |
+| **Frontend** | React 18 + TypeScript (Vite) + Tailwind CSS |
+| **Visualizations** | Recharts |
+| **Database** | SQLite (zero-setup local default) — fully compatible with MySQL 8.0 via `DATABASE_URL` |
+| **Auth** | JWT (PyJWT) + Passlib (bcrypt) with role-based access control |
+| **AI Core** | Random Forest Regressor (scikit-learn), trained on engineered climate/seasonality features |
+| **Live Climate Data** | Open-Meteo API integration |
+| **Report Generation** | ReportLab (PDF compilation) |
+| **Hosting (reference)** | Backend → Render, Frontend → Netlify |
+
+The backend serves the compiled React app directly (via `StaticFiles`) for a single-command unified local run, while also being deployable as a standalone API for a separately hosted frontend.
+
+---
+
+## 📂 Project Structure
+
+```
+Dengue-Outbreak-Prediction/
+├── backend/                     # FastAPI application
+│   ├── main.py                  # App entrypoint, routes, CORS, startup seeding
+│   ├── models.py                # SQLAlchemy ORM models
+│   ├── schemas.py                # Pydantic request/response schemas
+│   ├── database.py              # DB engine/session setup
+│   ├── auth.py                  # JWT auth, password hashing, role checks
+│   ├── ml_model.py               # Training, inference & metrics for the RF model
+│   ├── pdf_generator.py          # ReportLab PDF report builder
+│   ├── seed_data.py              # Initial DB seeding (demo users, sample records)
+│   └── dengue_model.joblib       # Serialized trained Random Forest model
+│
+├── frontend/                     # React + Vite + TypeScript client
+│   ├── src/
+│   │   ├── App.tsx               # Routing & role-based layout
+│   │   ├── main.tsx              # App bootstrap
+│   │   ├── index.css             # Tailwind entrypoint
+│   │   └── pages/
+│   │       ├── LoginRegister.tsx     # Auth screen
+│   │       ├── PublicDashboard.tsx   # Public risk map, trends, advisories
+│   │       ├── InspectorDashboard.tsx # Data entry, predictions, PDF reports
+│   │       └── AdminDashboard.tsx    # User mgmt, retraining, config, audit logs
+│   ├── public/                   # Static assets, `_redirects` for SPA routing
+│   ├── dist/                     # Production build output (served by backend)
+│   └── package.json
+│
+├── Dataset/
+│   ├── DengueAndClimateBangladesh.csv   # Historical climate + dengue case dataset
+│   └── DengueOutbreakPrediction_.xlsx   # Same dataset in spreadsheet form
+│
+├── Old_Models/                   # Earlier modeling iterations (kept for reference)
+│   ├── Simple_Linear_Regression/
+│   │   ├── DengueOutbreakPrediction.ipynb   # Initial linear regression notebook
+│   │   ├── Dengue_Prediction_Report.pdf     # Write-up of the linear regression study
+│   │   └── Overleaf_Dengue_Prediction.zip   # LaTeX source for the report
+│   └── multi-linear regression/
+│       └── model.py                         # Multi-linear regression experiment
+│
+├── dengue_feature_analysis.png    # EDA: feature relationships
+├── dengue_mlr_analysis.png        # EDA: multi-linear regression analysis
+├── dengue_seasonal_analysis.png   # EDA: seasonal case trends
+│
+├── requirements.txt               # Python dependencies
+├── run.py                         # One-command local launcher (installs deps, builds, serves)
+├── netlify.toml                   # Netlify build/redirect config for frontend hosting
+├── DEPLOYMENT.md                  # Render + Netlify production deployment guide
+└── README.md                      # You are here
+```
+
+> Note: `venv/`, `node_modules/`, `dist/`, `__pycache__/`, and `dengue.db` are local/build artifacts and should stay out of version control (see `.gitignore`).
 
 ---
 
