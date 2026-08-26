@@ -150,10 +150,11 @@ def toggle_user_status(
 
 @app.get("/api/records/climate", response_model=List[ClimateDataResponse])
 def read_climate_records(
+    location: str = Query("Dhaka"),
     db: Session = Depends(get_db),
     user: User = Depends(get_current_user)
 ):
-    return db.query(ClimateData).order_by(desc(ClimateData.year), desc(ClimateData.month)).limit(100).all()
+    return db.query(ClimateData).filter(ClimateData.location == location).order_by(desc(ClimateData.year), desc(ClimateData.month)).limit(100).all()
 
 @app.post("/api/records/climate", response_model=ClimateDataResponse)
 def create_climate_record(
@@ -163,16 +164,17 @@ def create_climate_record(
 ):
     exists = db.query(ClimateData).filter(
         ClimateData.year == record.year,
-        ClimateData.month == record.month
+        ClimateData.month == record.month,
+        ClimateData.location == record.location
     ).first()
     if exists:
-        raise HTTPException(status_code=400, detail="Climate record already exists for this month")
+        raise HTTPException(status_code=400, detail="Climate record already exists for this month and location")
         
     db_record = ClimateData(**record.dict())
     db.add(db_record)
     db.commit()
     db.refresh(db_record)
-    log_audit(db, inspector.username, "CLIMATE_CREATE", f"Added climate record for {record.month}/{record.year}")
+    log_audit(db, inspector.username, "CLIMATE_CREATE", f"Added climate record for {record.month}/{record.year} at {record.location}")
     return db_record
 
 @app.delete("/api/records/climate/{record_id}")
@@ -417,6 +419,7 @@ def get_dashboard_summary(location: str = Query("Dhaka"), db: Session = Depends(
     ).filter(
         DengueRecord.year == ClimateData.year,
         DengueRecord.month == ClimateData.month,
+        DengueRecord.location == ClimateData.location,
         DengueRecord.location == location
     ).order_by(DengueRecord.year, DengueRecord.month).all()
     
@@ -495,19 +498,20 @@ def get_realtime_weather(location: str = Query("Dhaka")):
 def download_pdf_report(
     year: int = Query(...),
     month: int = Query(...),
+    location: str = Query("Dhaka"),
     db: Session = Depends(get_db),
     inspector: User = Depends(RoleChecker(allowed_roles=["Inspector", "Admin"]))
 ):
     try:
-        pdf_bytes = generate_report_pdf(db, year, month, inspector.username)
+        pdf_bytes = generate_report_pdf(db, year, month, inspector.username, location)
         
-        log_audit(db, inspector.username, "PDF_REPORT", f"Generated PDF report for {month}/{year}")
+        log_audit(db, inspector.username, "PDF_REPORT", f"Generated PDF report for {month}/{year} at {location}")
         
         return StreamingResponse(
             io.BytesIO(pdf_bytes),
             media_type="application/pdf",
             headers={
-                "Content-Disposition": f"attachment; filename=dengue_report_{year}_{month:02d}.pdf"
+                "Content-Disposition": f"attachment; filename=dengue_report_{location}_{year}_{month:02d}.pdf"
             }
         )
     except Exception as e:

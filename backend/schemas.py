@@ -37,6 +37,7 @@ class ClimateDataBase(BaseModel):
     max_temp: float
     humidity: float
     rainfall: float
+    location: str = "Dhaka"
 
 class ClimateDataCreate(ClimateDataBase):
     pass

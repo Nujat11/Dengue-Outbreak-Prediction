@@ -67,7 +67,8 @@ def train_ml_model(db: Session) -> ModelMetrics:
         ClimateData.month
     ).filter(
         DengueRecord.year == ClimateData.year,
-        DengueRecord.month == ClimateData.month
+        DengueRecord.month == ClimateData.month,
+        DengueRecord.location == ClimateData.location
     ).all()
     
     if len(records) < 5:

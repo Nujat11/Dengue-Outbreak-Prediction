@@ -8,12 +8,13 @@ from reportlab.lib import colors
 from .ml_model import predict_dengue, get_current_metrics
 from .models import ClimateData, Notification
 
-def generate_report_pdf(db: Session, year: int, month: int, inspector_name: str) -> bytes:
+def generate_report_pdf(db: Session, year: int, month: int, inspector_name: str, location: str = "Dhaka") -> bytes:
     """Generate a PDF report in memory and return the raw bytes."""
     # 1. Fetch climate data for the prediction context
     climate = db.query(ClimateData).filter(
         ClimateData.year == year,
-        ClimateData.month == month
+        ClimateData.month == month,
+        ClimateData.location == location
     ).first()
     
     if climate:
@@ -109,14 +110,14 @@ def generate_report_pdf(db: Session, year: int, month: int, inspector_name: str)
     story.append(Paragraph("Dengue Outbreak Prediction & Early Warning Report", subtitle_style))
     
     # Metadata Table
-    report_id = f"DPR-DHAKA-{year}{month:02d}-{int(datetime.utcnow().timestamp()) % 1000:03d}"
+    report_id = f"DPR-{location.upper()}-{year}{month:02d}-{int(datetime.utcnow().timestamp()) % 1000:03d}"
     meta_data = [
         [
             Paragraph(f"<b>Report ID:</b> {report_id}", meta_style),
             Paragraph(f"<b>Generated On:</b> {datetime.now().strftime('%d-%b-%Y, %I:%M %p')}", meta_style)
         ],
         [
-            Paragraph(f"<b>Coverage Area:</b> Dhaka Metropolitan (DSCC/DNCC)", meta_style),
+            Paragraph(f"<b>Coverage Area:</b> {location} Region", meta_style),
             Paragraph(f"<b>Target Period:</b> {month_name} {year}", meta_style)
         ],
         [

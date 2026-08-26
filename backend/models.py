@@ -20,6 +20,7 @@ class ClimateData(Base):
     max_temp = Column(Float, nullable=False)
     humidity = Column(Float, nullable=False)
     rainfall = Column(Float, nullable=False)
+    location = Column(String(100), default="Dhaka", nullable=False)
 
 class DengueRecord(Base):
     __tablename__ = "dengue_records"

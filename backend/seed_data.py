@@ -12,6 +12,7 @@ def get_dataset_path():
     possible_paths = [
         os.path.join(script_dir, "DengueAndClimateBangladesh.csv"),
         os.path.join(script_dir, "Dataset", "DengueAndClimateBangladesh.csv"),
+        os.path.join(script_dir, "..", "Old_Models_and_Dataset", "Dataset", "DengueAndClimateBangladesh.csv"),
         os.path.join(script_dir, "..", "DengueOutbreakPrediction", "Dataset", "DengueAndClimateBangladesh.csv"),
         os.path.join(script_dir, "..", "Dataset", "DengueAndClimateBangladesh.csv"),
         os.path.join(script_dir, "DengueOutbreakPrediction", "Dataset", "DengueAndClimateBangladesh.csv")
@@ -22,7 +23,7 @@ def get_dataset_path():
     return None
 
 def seed_db(db: Session):
-    """Seed users, climate data, and dengue records from CSV."""
+    """Seed users, climate data, and dengue records from CSV for all supported districts."""
     print("Initializing Database tables...")
     Base.metadata.create_all(bind=engine)
     
@@ -54,55 +55,97 @@ def seed_db(db: Session):
             ))
     db.commit()
     
-    # 3. Seed Climate Data and Dengue Records from CSV
-    if db.query(ClimateData).count() > 0 or db.query(DengueRecord).count() > 0:
-        print("Climate/Dengue records already present in DB. Skipping CSV import.")
-        return
-        
+    # 3. Seed Climate Data and Dengue Records from CSV district by district
     csv_path = get_dataset_path()
     if not csv_path:
         print("WARNING: DengueAndClimateBangladesh.csv not found, skipping historical seeding.")
         return
         
-    print(f"Loading historical data from: {csv_path}")
     try:
         df = pd.read_csv(csv_path)
         
-        # Batch insert
-        climate_list = []
-        dengue_list = []
+        # Check if Dhaka is already seeded, if not seed it first
+        dhaka_count = db.query(DengueRecord).filter(DengueRecord.location == "Dhaka").count()
+        if dhaka_count == 0:
+            print("Seeding Dhaka historical records...")
+            climate_list = []
+            dengue_list = []
+            for _, row in df.iterrows():
+                year = int(row['YEAR'])
+                month = int(row['MONTH'])
+                climate_list.append(ClimateData(
+                    year=year, month=month,
+                    min_temp=float(row['MIN']), max_temp=float(row['MAX']),
+                    humidity=float(row['HUMIDITY']), rainfall=float(row['RAINFALL']),
+                    location="Dhaka"
+                ))
+                dengue_list.append(DengueRecord(
+                    year=year, month=month,
+                    cases=int(row['DENGUE']), location="Dhaka"
+                ))
+            db.bulk_save_objects(climate_list)
+            db.bulk_save_objects(dengue_list)
+            db.commit()
+            print("Dhaka historical records seeded.")
+
+        # Now train baseline model if model file doesn't exist, so we can use it for seeding other districts
+        backend_dir = os.path.dirname(os.path.realpath(__file__))
+        model_path = os.path.join(backend_dir, "dengue_model.joblib")
         
-        for _, row in df.iterrows():
-            year = int(row['YEAR'])
-            month = int(row['MONTH'])
+        if not os.path.exists(model_path):
+            print("Training baseline ML prediction model...")
+            train_ml_model(db)
+            print("Model trained.")
+
+        # Seed other districts using weather offsets and ML predictions
+        districts = {
+            "Chittagong": {"min_temp_offset": 0.5, "max_temp_offset": -0.5, "humidity_offset": 4.0, "rainfall_multiplier": 1.35},
+            "Jamalpur": {"min_temp_offset": -1.5, "max_temp_offset": 0.2, "humidity_offset": -2.0, "rainfall_multiplier": 0.90},
+            "Sylhet": {"min_temp_offset": -0.5, "max_temp_offset": -1.0, "humidity_offset": 2.0, "rainfall_multiplier": 1.65}
+        }
+
+        # We import predict_dengue here to avoid circular dependencies
+        from .ml_model import predict_dengue
+
+        for loc, offsets in districts.items():
+            count = db.query(DengueRecord).filter(DengueRecord.location == loc).count()
+            if count > 0:
+                print(f"Historical records for {loc} already present. Skipping.")
+                continue
+                
+            print(f"Seeding {loc} historical records using weather offsets and ML predictions...")
+            climate_list = []
+            dengue_list = []
+            for _, row in df.iterrows():
+                year = int(row['YEAR'])
+                month = int(row['MONTH'])
+                
+                # Apply offsets to create realistic local climate
+                min_temp = float(row['MIN']) + offsets["min_temp_offset"]
+                max_temp = float(row['MAX']) + offsets["max_temp_offset"]
+                humidity = min(100.0, max(0.0, float(row['HUMIDITY']) + offsets["humidity_offset"]))
+                rainfall = float(row['RAINFALL']) * offsets["rainfall_multiplier"]
+                
+                climate_list.append(ClimateData(
+                    year=year, month=month,
+                    min_temp=min_temp, max_temp=max_temp,
+                    humidity=humidity, rainfall=rainfall,
+                    location=loc
+                ))
+                
+                # Predict cases based on the new local weather
+                predicted_cases, _ = predict_dengue(db, month, min_temp, max_temp, humidity, rainfall)
+                
+                dengue_list.append(DengueRecord(
+                    year=year, month=month,
+                    cases=predicted_cases, location=loc
+                ))
+                
+            db.bulk_save_objects(climate_list)
+            db.bulk_save_objects(dengue_list)
+            db.commit()
+            print(f"{loc} historical records seeded successfully!")
             
-            climate_list.append(ClimateData(
-                year=year,
-                month=month,
-                min_temp=float(row['MIN']),
-                max_temp=float(row['MAX']),
-                humidity=float(row['HUMIDITY']),
-                rainfall=float(row['RAINFALL'])
-            ))
-            
-            dengue_list.append(DengueRecord(
-                year=year,
-                month=month,
-                cases=int(row['DENGUE']),
-                location="Dhaka"
-            ))
-            
-        print(f"Inserting {len(climate_list)} climate & dengue records...")
-        db.bulk_save_objects(climate_list)
-        db.bulk_save_objects(dengue_list)
-        db.commit()
-        print("Historical database seeding completed successfully!")
-        
-        # Train baseline model immediately
-        print("Training baseline ML prediction model...")
-        train_ml_model(db)
-        print("Model trained and coefficients successfully saved!")
-        
     except Exception as e:
         db.rollback()
         print(f"ERROR: Failed to seed historical data: {str(e)}")
