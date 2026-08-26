@@ -4,7 +4,6 @@
 
 An AI-integrated full-stack web application designed to predict Dengue outbreaks, classify risk levels, plan hospital resource allocations, and issue early warnings. The system integrates historical climate data and dengue cases, applies a Multiple Linear Regression model, fetches real-time weather, and logs simulated SMS/Email notifications.
 
-Developed for **CSE307 System Analysis & Design** - Independent University, Bangladesh (IUB).
 
 ---
 
