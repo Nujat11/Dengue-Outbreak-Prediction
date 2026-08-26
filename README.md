@@ -3,7 +3,7 @@
 [![Netlify Status](https://api.netlify.com/api/v1/badges/7bb1f7b7-29a1-4785-a44b-5f78468f3597/deploy-status)](https://app.netlify.com/projects/dengueoutbreakprediction/deploys)
 
 ### 🌐 Live Deployment Links
-* **Frontend (Netlify):** [https://dengueoutbreakprediction.netlify.app](https://dengueoutbreakprediction.netlify.app)
+* **Frontend (Netlify):**  [https://dengueoutbreakprediction.netlify.app](https://dengueoutbreakprediction.netlify.app)
 * **Backend API (Render):** [https://dengue-outbreak-prediction-backend.onrender.com](https://dengue-outbreak-prediction-backend.onrender.com)
 
 An AI-integrated full-stack web application designed to predict Dengue outbreaks, classify risk levels, plan hospital resource allocations, and issue early warnings. The system integrates historical climate data and dengue cases, applies a Multiple Linear Regression model, fetches real-time weather, and logs simulated SMS/Email notifications.
