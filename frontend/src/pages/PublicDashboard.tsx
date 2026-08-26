@@ -38,13 +38,54 @@ const DHAKA_ZONES = [
   { id: 'zone9', name: 'Jatrabari & Demra (Zone 9)', x: '78%', y: '82%', r: '32', riskMultiplier: 1.3 },
 ]
 
+// Zones in Chittagong
+const CHITTAGONG_ZONES = [
+  { id: 'ctg1', name: 'Kotwali & Sadarghat', x: '45%', y: '70%', r: '32', riskMultiplier: 1.35 },
+  { id: 'ctg2', name: 'Halishahar Area', x: '25%', y: '55%', r: '30', riskMultiplier: 1.2 },
+  { id: 'ctg3', name: 'Panchlaish District', x: '65%', y: '35%', r: '28', riskMultiplier: 1.1 },
+  { id: 'ctg4', name: 'Khulshi Neighborhood', x: '35%', y: '32%', r: '28', riskMultiplier: 0.9 },
+  { id: 'ctg5', name: 'Patenga & Port Area', x: '35%', y: '90%', r: '26', riskMultiplier: 0.75 },
+  { id: 'ctg6', name: 'Bakalia Region', x: '75%', y: '65%', r: '30', riskMultiplier: 1.15 },
+  { id: 'ctg7', name: 'Double Mooring Zone', x: '30%', y: '68%', r: '28', riskMultiplier: 1.25 },
+  { id: 'ctg8', name: 'Bayazid Bostami Area', x: '50%', y: '20%', r: '26', riskMultiplier: 0.85 },
+]
+
+// Zones in Jamalpur
+const JAMALPUR_ZONES = [
+  { id: 'jmp1', name: 'Jamalpur Sadar (Center)', x: '50%', y: '50%', r: '35', riskMultiplier: 1.3 },
+  { id: 'jmp2', name: 'Sarishabari Zone', x: '45%', y: '82%', r: '28', riskMultiplier: 1.1 },
+  { id: 'jmp3', name: 'Melandaha Sub-District', x: '28%', y: '40%', r: '26', riskMultiplier: 0.95 },
+  { id: 'jmp4', name: 'Islampur Sector', x: '32%', y: '28%', r: '28', riskMultiplier: 0.85 },
+  { id: 'jmp5', name: 'Dewanganj Area', x: '22%', y: '15%', r: '26', riskMultiplier: 0.7 },
+  { id: 'jmp6', name: 'Bakshiganj Region', x: '65%', y: '18%', r: '24', riskMultiplier: 0.75 },
+  { id: 'jmp7', name: 'Madarganj Sector', x: '18%', y: '65%', r: '28', riskMultiplier: 0.9 },
+]
+
+// Zones in Sylhet
+const SYLHET_ZONES = [
+  { id: 'syl1', name: 'Zindabazar & Bandarbazar', x: '50%', y: '55%', r: '34', riskMultiplier: 1.4 },
+  { id: 'syl2', name: 'Ambarkhana & Chauhatta', x: '48%', y: '38%', r: '30', riskMultiplier: 1.2 },
+  { id: 'syl3', name: 'Shibgonj & Uposhohor', x: '72%', y: '48%', r: '28', riskMultiplier: 1.15 },
+  { id: 'syl4', name: 'Akhalia & SUST Area', x: '22%', y: '42%', r: '28', riskMultiplier: 0.85 },
+  { id: 'syl5', name: 'South Surma Area', x: '55%', y: '78%', r: '32', riskMultiplier: 1.25 },
+  { id: 'syl6', name: 'Osmani Nagar Sector', x: '30%', y: '85%', r: '26', riskMultiplier: 0.75 },
+  { id: 'syl7', name: 'Shahporan Area', x: '75%', y: '25%', r: '26', riskMultiplier: 0.9 },
+]
+
+const DISTRICT_ZONES: Record<string, any[]> = {
+  Dhaka: DHAKA_ZONES,
+  Chittagong: CHITTAGONG_ZONES,
+  Jamalpur: JAMALPUR_ZONES,
+  Sylhet: SYLHET_ZONES
+}
+
 export default function PublicDashboard() {
   const [summary, setSummary] = useState<SummaryData | null>(null)
   const [loading, setLoading] = useState<boolean>(true)
   const [error, setError] = useState<string | null>(null)
   const [selectedClimateFactor, setSelectedClimateFactor] = useState<string>('rainfall')
-  const [selectedZone, setSelectedZone] = useState<typeof DHAKA_ZONES[0]>(DHAKA_ZONES[5]) // Default Dhaka South
   const [selectedLocation, setSelectedLocation] = useState<string>('Dhaka')
+  const [selectedZone, setSelectedZone] = useState<any>(DHAKA_ZONES[5]) // Default Dhaka South
   const [realtimeWeather, setRealtimeWeather] = useState<{
     min_temp: number
     max_temp: number
@@ -57,6 +98,10 @@ export default function PublicDashboard() {
   useEffect(() => {
     fetchSummary(selectedLocation)
     fetchRealtimeWeather(selectedLocation)
+    
+    // Reset selected zone to first zone of the new location
+    const zones = DISTRICT_ZONES[selectedLocation] || DHAKA_ZONES
+    setSelectedZone(zones[0])
   }, [selectedLocation])
 
   const fetchRealtimeWeather = async (loc: string) => {
@@ -106,13 +151,11 @@ export default function PublicDashboard() {
     )
   }
 
-  // Get dynamic values based on selected zone multiplier (for Dhaka) or fallback to general prediction
-  const zonePredictedCases = selectedLocation === 'Dhaka'
-    ? Math.round(summary.predicted_cases * selectedZone.riskMultiplier)
-    : summary.predicted_cases
-  const zoneRisk = selectedLocation === 'Dhaka'
-    ? (zonePredictedCases >= 400 ? 'HIGH' : zonePredictedCases >= 150 ? 'MEDIUM' : 'LOW')
-    : summary.predicted_risk
+  // Get dynamic values based on selected zone multiplier
+  const zonePredictedCases = Math.round(summary.predicted_cases * (selectedZone?.riskMultiplier || 1.0))
+  let zoneRisk = 'LOW'
+  if (zonePredictedCases >= 400) zoneRisk = 'HIGH'
+  else if (zonePredictedCases >= 150) zoneRisk = 'MEDIUM'
 
   const getRiskColor = (risk: string) => {
     if (risk === 'HIGH') return 'text-red-600 bg-red-100 border-red-200'
@@ -238,92 +281,114 @@ export default function PublicDashboard() {
 
       {/* Main Grid: Interactive Map & Detailed Prediction Info */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-        {selectedLocation === 'Dhaka' ? (
-          <div className="lg:col-span-7 bg-white p-5 rounded-lg border border-slate-200 shadow-sm flex flex-col">
-            <div className="mb-4">
-              <h3 className="text-lg font-bold text-slate-800">Dhaka Outbreak Prediction Map</h3>
-              <p className="text-slate-500 text-xs">Select a sector bubble to check local predicted risk and case thresholds.</p>
-            </div>
-            
-            <div className="flex-1 bg-slate-900 rounded-lg p-4 flex items-center justify-center relative overflow-hidden border border-slate-800 min-h-[350px]">
-              {/* Background grids styling for map aesthetic */}
-              <div className="absolute inset-0 bg-[radial-gradient(#1e293b_1px,transparent_1px)] [background-size:16px_16px] opacity-40"></div>
+        {(() => {
+          const activeZones = DISTRICT_ZONES[selectedLocation] || DHAKA_ZONES;
+          const getDistrictMapElements = () => {
+            if (selectedLocation === 'Chittagong') {
+              return {
+                title: "Chittagong Outbreak Prediction Map",
+                riverPath: "M 20,20 C 80,150 150,300 220,450 M 220,450 C 320,480 400,420 480,440",
+                boundaryPath: "M 150,20 L 380,50 L 450,200 L 380,350 L 320,480 L 220,450 L 100,250 Z",
+                riverStrokeWidth: "12"
+              }
+            }
+            if (selectedLocation === 'Jamalpur') {
+              return {
+                title: "Jamalpur Outbreak Prediction Map",
+                riverPath: "M 20,120 Q 250,100 480,380",
+                boundaryPath: "M 80,80 L 320,60 L 440,180 L 380,380 L 250,420 L 60,320 Z",
+                riverStrokeWidth: "14"
+              }
+            }
+            if (selectedLocation === 'Sylhet') {
+              return {
+                title: "Sylhet Outbreak Prediction Map",
+                riverPath: "M 20,260 Q 250,200 480,240",
+                boundaryPath: "M 100,100 L 380,80 L 450,250 L 380,420 L 150,380 Z",
+                riverStrokeWidth: "12"
+              }
+            }
+            // Default Dhaka
+            return {
+              title: "Dhaka Outbreak Prediction Map",
+              riverPath: "M 20,480 C 120,400 200,380 250,420 C 300,460 380,450 480,390",
+              boundaryPath: "M 120,50 L 320,30 L 450,150 L 480,350 L 350,450 L 150,420 L 50,300 L 80,150 Z",
+              riverStrokeWidth: "18"
+            }
+          };
+
+          const mapMeta = getDistrictMapElements();
+
+          return (
+            <div className="lg:col-span-7 bg-white p-5 rounded-lg border border-slate-200 shadow-sm flex flex-col">
+              <div className="mb-4">
+                <h3 className="text-lg font-bold text-slate-800">{mapMeta.title}</h3>
+                <p className="text-slate-500 text-xs">Select a sector bubble to check local predicted risk and case thresholds.</p>
+              </div>
               
-              {/* SVG Dhaka Map Overlay Representation */}
-              <svg viewBox="0 0 500 500" className="w-full max-w-[420px] h-auto relative z-10 select-none">
-                {/* Dhaka River outline mock shapes */}
-                <path d="M 20,480 C 120,400 200,380 250,420 C 300,460 380,450 480,390" fill="none" stroke="#1e293b" strokeWidth="18" strokeLinecap="round" opacity="0.3" />
-                <path d="M 20,480 C 120,400 200,380 250,420 C 300,460 380,450 480,390" fill="none" stroke="#0284c7" strokeWidth="6" strokeLinecap="round" opacity="0.5" />
+              <div className="flex-1 bg-slate-900 rounded-lg p-4 flex items-center justify-center relative overflow-hidden border border-slate-800 min-h-[350px]">
+                {/* Background grids styling for map aesthetic */}
+                <div className="absolute inset-0 bg-[radial-gradient(#1e293b_1px,transparent_1px)] [background-size:16px_16px] opacity-40"></div>
                 
-                {/* Dhaka Land Boundary background */}
-                <path d="M 120,50 L 320,30 L 450,150 L 480,350 L 350,450 L 150,420 L 50,300 L 80,150 Z" fill="#0f172a" stroke="#334155" strokeWidth="2" strokeDasharray="4 2" />
-
-                {/* Grid zones */}
-                {DHAKA_ZONES.map((zone) => {
-                  const cases = Math.round(summary.predicted_cases * zone.riskMultiplier)
-                  let risk = 'LOW'
-                  if (cases >= 400) risk = 'HIGH'
-                  else if (cases >= 150) risk = 'MEDIUM'
+                {/* SVG Map Overlay Representation */}
+                <svg viewBox="0 0 500 500" className="w-full max-w-[420px] h-auto relative z-10 select-none">
+                  {/* River outline mock shapes */}
+                  <path d={mapMeta.riverPath} fill="none" stroke="#1e293b" strokeWidth={mapMeta.riverStrokeWidth} strokeLinecap="round" opacity="0.3" />
+                  <path d={mapMeta.riverPath} fill="none" stroke="#0284c7" strokeWidth="6" strokeLinecap="round" opacity="0.5" />
                   
-                  const isSelected = selectedZone.id === zone.id
-                  
-                  return (
-                    <g key={zone.id} className="cursor-pointer group" onClick={() => setSelectedZone(zone)}>
-                      {/* Ring highlight if selected */}
-                      {isSelected && (
-                        <circle cx={zone.x} cy={zone.y} r={parseFloat(zone.r) + 8} fill="none" stroke="#2dd4bf" strokeWidth="2.5" className="animate-ping" style={{ transformOrigin: `${zone.x} ${zone.y}`, animationDuration: '3s' }} />
-                      )}
-                      {/* Outer glow hover */}
-                      <circle cx={zone.x} cy={zone.y} r={zone.r} fill={getRiskColorHex(risk)} fillOpacity={isSelected ? 0.35 : 0.15} stroke={getRiskColorHex(risk)} strokeWidth={isSelected ? 3.5 : 1.5} className="group-hover:fill-opacity-30 group-hover:stroke-width-2 transition-all" />
-                      
-                      {/* Inner core circle */}
-                      <circle cx={zone.x} cy={zone.y} r={isSelected ? "8" : "6"} fill={getRiskColorHex(risk)} className="group-hover:r-[9] transition-all" />
-                      
-                      {/* Text Label */}
-                      <text x={zone.x} y={parseFloat(zone.y) - parseFloat(zone.r) - 4} textAnchor="middle" fill={isSelected ? "#2dd4bf" : "#94a3b8"} fontSize="8" fontWeight="bold" className="pointer-events-none drop-shadow">
-                        {zone.name.split(' ')[0]}
-                      </text>
-                    </g>
-                  )
-                })}
-              </svg>
+                  {/* Land Boundary background */}
+                  <path d={mapMeta.boundaryPath} fill="#0f172a" stroke="#334155" strokeWidth="2" strokeDasharray="4 2" />
 
-              {/* Map Legend */}
-              <div className="absolute bottom-3 left-3 bg-slate-950/80 border border-slate-800 rounded px-2.5 py-1.5 text-[9px] font-semibold text-slate-300 space-y-1 z-20 backdrop-blur-sm">
-                <p className="text-[10px] text-slate-400 mb-1 font-bold border-b border-slate-800 pb-0.5 uppercase tracking-wide">Risk Legend</p>
-                <div className="flex items-center space-x-1.5">
-                  <span className="w-2.5 h-2.5 rounded-full bg-red-500 block"></span>
-                  <span>High Outbreak (&gt;= 400 cases)</span>
-                </div>
-                <div className="flex items-center space-x-1.5">
-                  <span className="w-2.5 h-2.5 rounded-full bg-amber-500 block"></span>
-                  <span>Medium Outbreak (150 - 399 cases)</span>
-                </div>
-                <div className="flex items-center space-x-1.5">
-                  <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 block"></span>
-                  <span>Low Outbreak (&lt; 150 cases)</span>
+                  {/* Grid zones */}
+                  {activeZones.map((zone) => {
+                    const cases = Math.round(summary.predicted_cases * zone.riskMultiplier)
+                    let risk = 'LOW'
+                    if (cases >= 400) risk = 'HIGH'
+                    else if (cases >= 150) risk = 'MEDIUM'
+                    
+                    const isSelected = selectedZone?.id === zone.id
+                    
+                    return (
+                      <g key={zone.id} className="cursor-pointer group" onClick={() => setSelectedZone(zone)}>
+                        {/* Ring highlight if selected */}
+                        {isSelected && (
+                          <circle cx={zone.x} cy={zone.y} r={parseFloat(zone.r) + 8} fill="none" stroke="#2dd4bf" strokeWidth="2.5" className="animate-ping" style={{ transformOrigin: `${zone.x} ${zone.y}`, animationDuration: '3s' }} />
+                        )}
+                        {/* Outer glow hover */}
+                        <circle cx={zone.x} cy={zone.y} r={zone.r} fill={getRiskColorHex(risk)} fillOpacity={isSelected ? 0.35 : 0.15} stroke={getRiskColorHex(risk)} strokeWidth={isSelected ? 3.5 : 1.5} className="group-hover:fill-opacity-30 group-hover:stroke-width-2 transition-all" />
+                        
+                        {/* Inner core circle */}
+                        <circle cx={zone.x} cy={zone.y} r={isSelected ? "8" : "6"} fill={getRiskColorHex(risk)} className="group-hover:r-[9] transition-all" />
+                        
+                        {/* Text Label */}
+                        <text x={zone.x} y={parseFloat(zone.y) - parseFloat(zone.r) - 4} textAnchor="middle" fill={isSelected ? "#2dd4bf" : "#94a3b8"} fontSize="8" fontWeight="bold" className="pointer-events-none drop-shadow">
+                          {zone.name.split(' ')[0]}
+                        </text>
+                      </g>
+                    )
+                  })}
+                </svg>
+
+                {/* Map Legend */}
+                <div className="absolute bottom-3 left-3 bg-slate-950/80 border border-slate-800 rounded px-2.5 py-1.5 text-[9px] font-semibold text-slate-300 space-y-1 z-20 backdrop-blur-sm">
+                  <p className="text-[10px] text-slate-400 mb-1 font-bold border-b border-slate-800 pb-0.5 uppercase tracking-wide">Risk Legend</p>
+                  <div className="flex items-center space-x-1.5">
+                    <span className="w-2.5 h-2.5 rounded-full bg-red-500 block"></span>
+                    <span>High Outbreak (&gt;= 400 cases)</span>
+                  </div>
+                  <div className="flex items-center space-x-1.5">
+                    <span className="w-2.5 h-2.5 rounded-full bg-amber-500 block"></span>
+                    <span>Medium Outbreak (150 - 399 cases)</span>
+                  </div>
+                  <div className="flex items-center space-x-1.5">
+                    <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 block"></span>
+                    <span>Low Outbreak (&lt; 150 cases)</span>
+                  </div>
                 </div>
               </div>
             </div>
-          </div>
-        ) : (
-          <div className="lg:col-span-7 bg-white p-6 rounded-lg border border-slate-200 shadow-sm flex flex-col justify-center items-center text-center space-y-5 min-h-[350px]">
-            <div className="p-5 bg-teal-50 text-teal-600 rounded-full">
-              <Activity size={48} className="stroke-[2]" />
-            </div>
-            <div className="space-y-2">
-              <h3 className="text-xl font-bold text-slate-800">{selectedLocation} District Outbreak Overview</h3>
-              <p className="text-slate-500 text-sm max-w-md mx-auto leading-relaxed">
-                The interactive sector bubble map is currently exclusive to Dhaka City Zones.
-                However, all historical case charts, seasonal statistics, and climate-based predictions shown on this page are fully active and customized for the <strong>{selectedLocation}</strong> region.
-              </p>
-            </div>
-            <div className="flex space-x-3 text-xs bg-slate-50 border border-slate-100 rounded-md p-3 max-w-sm">
-              <span className="text-slate-400">💡</span>
-              <p className="text-left text-slate-500 font-medium">Use the district selector at the top right to switch between regions and compare outbreak predictions.</p>
-            </div>
-          </div>
-        )}
+          );
+        })()}
 
         {/* Selected Zone prediction Details Panel (5 cols) */}
         <div className="lg:col-span-5 bg-white p-5 rounded-lg border border-slate-200 shadow-sm flex flex-col justify-between">
