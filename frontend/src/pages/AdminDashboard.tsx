@@ -97,7 +97,7 @@ export default function AdminDashboard({ token, username }: AdminDashboardProps)
       
       const newMetrics = await res.json()
       setMetrics(newMetrics)
-      setMessage({ text: `AI Multiple Linear Regression model successfully retrained! Samples: ${newMetrics.training_samples}, R2: ${newMetrics.r2.toFixed(4)}`, type: 'success' })
+      setMessage({ text: `AI Random Forest model successfully retrained! Samples: ${newMetrics.training_samples}, R2: ${newMetrics.r2.toFixed(4)}`, type: 'success' })
     } catch (err: any) {
       setMessage({ text: err.message, type: 'error' })
     } finally {
@@ -166,7 +166,7 @@ export default function AdminDashboard({ token, username }: AdminDashboardProps)
       <div className="flex items-center justify-between pb-3 border-b border-slate-200">
         <div>
           <h2 className="text-2xl font-bold text-slate-800">System Administration Console</h2>
-          <p className="text-slate-500 text-sm">Monitor linear regression algorithms, promote user accounts, adjust warning settings, and inspect audit trails.</p>
+          <p className="text-slate-500 text-sm">Monitor random forest algorithms, promote user accounts, adjust warning settings, and inspect audit trails.</p>
         </div>
       </div>
 
@@ -231,7 +231,7 @@ export default function AdminDashboard({ token, username }: AdminDashboardProps)
           <div className="lg:col-span-5 bg-white p-5 rounded-lg border border-slate-200 shadow-sm space-y-4">
             <div className="border-b border-slate-100 pb-2 flex justify-between items-center">
               <div>
-                <h3 className="text-sm font-bold text-slate-800">Multiple Linear Regression Model</h3>
+                <h3 className="text-sm font-bold text-slate-800">Random Forest Model</h3>
                 <p className="text-slate-400 text-[10px]">Active evaluation parameters and errors.</p>
               </div>
               <button 
