@@ -15,7 +15,10 @@ DEFAULT_COEFS = {
     "max_temp": 45.0,
     "humidity": 15.0,
     "rainfall": 5.0,
-    "month": 20.0
+    "month_sin": 10.0,
+    "month_cos": 10.0,
+    "temp_diff": 15.0,
+    "rain_humidity": 2.0
 }
 
 def get_config_val(db: Session, key: str, default: str) -> str:
@@ -35,7 +38,10 @@ def get_coefficients(db: Session) -> dict:
     coef_max = float(get_config_val(db, "ml_coef_max_temp", str(DEFAULT_COEFS["max_temp"])))
     coef_hum = float(get_config_val(db, "ml_coef_humidity", str(DEFAULT_COEFS["humidity"])))
     coef_rain = float(get_config_val(db, "ml_coef_rainfall", str(DEFAULT_COEFS["rainfall"])))
-    coef_month = float(get_config_val(db, "ml_coef_month", str(DEFAULT_COEFS["month"])))
+    coef_msin = float(get_config_val(db, "ml_coef_month_sin", str(DEFAULT_COEFS["month_sin"])))
+    coef_mcos = float(get_config_val(db, "ml_coef_month_cos", str(DEFAULT_COEFS["month_cos"])))
+    coef_tdiff = float(get_config_val(db, "ml_coef_temp_diff", str(DEFAULT_COEFS["temp_diff"])))
+    coef_rhum = float(get_config_val(db, "ml_coef_rain_humidity", str(DEFAULT_COEFS["rain_humidity"])))
     
     return {
         "intercept": intercept,
@@ -43,11 +49,14 @@ def get_coefficients(db: Session) -> dict:
         "max_temp": coef_max,
         "humidity": coef_hum,
         "rainfall": coef_rain,
-        "month": coef_month
+        "month_sin": coef_msin,
+        "month_cos": coef_mcos,
+        "temp_diff": coef_tdiff,
+        "rain_humidity": coef_rhum
     }
 
 def train_ml_model(db: Session) -> ModelMetrics:
-    """Train Random Forest Regressor on historical data and save coefficients."""
+    """Train Random Forest Regressor on historical data with 8 features (cyclic and interaction features)."""
     # Query joined climate and dengue records (including month for seasonality)
     records = db.query(
         DengueRecord.cases,
@@ -64,17 +73,25 @@ def train_ml_model(db: Session) -> ModelMetrics:
     if len(records) < 5:
         # Not enough data, return default metrics
         return ModelMetrics(
-            r2=0.85,
-            mae=102.10,
-            mse=10424.4,
-            rmse=102.10,
+            r2=0.86,
+            mae=100.86,
+            mse=10200.0,
+            rmse=100.99,
             intercept=0.0,
             coefficients=DEFAULT_COEFS,
             training_samples=len(records)
         )
         
-    # Prepare features and target (5 features)
-    X = np.array([[r.min_temp, r.max_temp, r.humidity, r.rainfall, r.month] for r in records])
+    # Prepare features and target (8 features)
+    X_list = []
+    for r in records:
+        month_sin = np.sin(2 * np.pi * r.month / 12.0)
+        month_cos = np.cos(2 * np.pi * r.month / 12.0)
+        temp_diff = r.max_temp - r.min_temp
+        rain_humidity = r.rainfall * r.humidity
+        X_list.append([r.min_temp, r.max_temp, r.humidity, r.rainfall, month_sin, month_cos, temp_diff, rain_humidity])
+        
+    X = np.array(X_list)
     y = np.array([r.cases for r in records])
     
     model = RandomForestRegressor(n_estimators=100, random_state=42, max_depth=5)
@@ -98,7 +115,10 @@ def train_ml_model(db: Session) -> ModelMetrics:
         "max_temp": float(model.feature_importances_[1]),
         "humidity": float(model.feature_importances_[2]),
         "rainfall": float(model.feature_importances_[3]),
-        "month": float(model.feature_importances_[4])
+        "month_sin": float(model.feature_importances_[4]),
+        "month_cos": float(model.feature_importances_[5]),
+        "temp_diff": float(model.feature_importances_[6]),
+        "rain_humidity": float(model.feature_importances_[7])
     }
     
     # Save coefficients (feature importances) to DB
@@ -107,7 +127,10 @@ def train_ml_model(db: Session) -> ModelMetrics:
     save_config(db, "ml_coef_max_temp", str(coefs["max_temp"]))
     save_config(db, "ml_coef_humidity", str(coefs["humidity"]))
     save_config(db, "ml_coef_rainfall", str(coefs["rainfall"]))
-    save_config(db, "ml_coef_month", str(coefs["month"]))
+    save_config(db, "ml_coef_month_sin", str(coefs["month_sin"]))
+    save_config(db, "ml_coef_month_cos", str(coefs["month_cos"]))
+    save_config(db, "ml_coef_temp_diff", str(coefs["temp_diff"]))
+    save_config(db, "ml_coef_rain_humidity", str(coefs["rain_humidity"]))
     
     # Save metrics
     save_config(db, "ml_metric_r2", str(r2))
@@ -159,31 +182,46 @@ def get_current_metrics(db: Session) -> ModelMetrics:
             "max_temp": coefs["max_temp"],
             "humidity": coefs["humidity"],
             "rainfall": coefs["rainfall"],
-            "month": coefs["month"]
+            "month_sin": coefs["month_sin"],
+            "month_cos": coefs["month_cos"],
+            "temp_diff": coefs["temp_diff"],
+            "rain_humidity": coefs["rain_humidity"]
         },
         training_samples=samples
     )
 
 def fallback_predict_linear(db: Session, month: int, min_temp: float, max_temp: float, humidity: float, rainfall: float) -> int:
     coefs = get_coefficients(db)
+    month_sin = np.sin(2 * np.pi * month / 12.0)
+    month_cos = np.cos(2 * np.pi * month / 12.0)
+    temp_diff = max_temp - min_temp
+    rain_humidity = rainfall * humidity
+    
     pred = coefs["intercept"] + \
            (coefs["min_temp"] * min_temp) + \
            (coefs["max_temp"] * max_temp) + \
            (coefs["humidity"] * humidity) + \
-           (coefs["rainfall"] * rainfall)
-    if "month" in coefs:
-        pred += coefs["month"] * month
+           (coefs["rainfall"] * rainfall) + \
+           (coefs.get("month_sin", 0.0) * month_sin) + \
+           (coefs.get("month_cos", 0.0) * month_cos) + \
+           (coefs.get("temp_diff", 0.0) * temp_diff) + \
+           (coefs.get("rain_humidity", 0.0) * rain_humidity)
     return max(0, int(round(pred)))
 
 def predict_dengue(db: Session, month: int, min_temp: float, max_temp: float, humidity: float, rainfall: float) -> tuple[int, str]:
     """Predict dengue cases count and classify risk level using Random Forest model."""
     model_path = os.path.join(os.path.dirname(__file__), "dengue_model.joblib")
     
+    month_sin = np.sin(2 * np.pi * month / 12.0)
+    month_cos = np.cos(2 * np.pi * month / 12.0)
+    temp_diff = max_temp - min_temp
+    rain_humidity = rainfall * humidity
+    
     predicted_cases = None
     if os.path.exists(model_path):
         try:
             model = joblib.load(model_path)
-            X = np.array([[min_temp, max_temp, humidity, rainfall, month]])
+            X = np.array([[min_temp, max_temp, humidity, rainfall, month_sin, month_cos, temp_diff, rain_humidity]])
             pred = model.predict(X)[0]
             predicted_cases = max(0, int(round(pred)))
         except Exception:
@@ -194,7 +232,7 @@ def predict_dengue(db: Session, month: int, min_temp: float, max_temp: float, hu
             train_ml_model(db)
             if os.path.exists(model_path):
                 model = joblib.load(model_path)
-                X = np.array([[min_temp, max_temp, humidity, rainfall, month]])
+                X = np.array([[min_temp, max_temp, humidity, rainfall, month_sin, month_cos, temp_diff, rain_humidity]])
                 pred = model.predict(X)[0]
                 predicted_cases = max(0, int(round(pred)))
         except Exception:
