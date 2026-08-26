@@ -43,13 +43,4 @@ You can launch the entire unified application (installing requirements, building
    ```
 3. Open your browser and navigate to: **`http://localhost:8000`**
 
-### 🔑 Demo Login Credentials
-
-The database is pre-seeded with these testing accounts:
-
-| Username | Password | Role |
-|---|---|---|
-| `admin` | `admin123` | **Admin** |
-| `inspector` | `inspector123` | **Inspector** |
-| `user` | `user123` | **Public** |
-
+\
