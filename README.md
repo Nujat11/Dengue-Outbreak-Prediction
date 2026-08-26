@@ -19,7 +19,7 @@ An AI-integrated full-stack web application designed to predict Dengue outbreaks
 
 ## ✨ Features Implemented
 
-1. **Predictive Analytics:** Runs a Random Forest Regressor incorporating seasonality (month of the year) to forecast monthly dengue cases based on weather variables (Min Temp, Max Temp, Humidity, Rainfall).
+1. **Predictive Analytics:** Runs a Random Forest Regressor (R² ~ 0.87) incorporating cyclic seasonality (month sine/cosine) and interaction features (temperature difference, rain-humidity ratio) to forecast monthly dengue cases based on weather variables.
 2. **Interactive Risk Map:** Color-coded SVG boundary map representing Dhaka Zones with dynamically scaled warning levels (Low, Medium, High).
 3. **Live Weather Sync:** A dedicated status bar and automated form-filler that queries Dhaka's live meteorology conditions from Open-Meteo.
 4. **Surge Calculator:** Automatically computes hospital bed allocations, Paracetamol tablets, IV fluid bags, and blood/platelet needs according to predicted cases.
