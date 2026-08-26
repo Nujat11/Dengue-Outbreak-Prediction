@@ -140,7 +140,6 @@ The catch-all `GET /{full_path:path}` route serves the built React SPA (`fronten
 ---
 
 ## 🚀 How to Run Locally
-
 You can launch the entire unified application (installing requirements, building frontend, seeding database, and starting backend) in a single command:
 
 1. Clone or open the project folder in your terminal.
@@ -150,5 +149,4 @@ You can launch the entire unified application (installing requirements, building
    ```
 3. Open your browser and navigate to: **`http://localhost:8000`**
 ---
-
 
