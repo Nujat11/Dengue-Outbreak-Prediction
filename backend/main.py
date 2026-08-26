@@ -249,7 +249,7 @@ def generate_prediction(
     db: Session = Depends(get_db),
     user: User = Depends(get_current_user)
 ):
-    cases, risk = predict_dengue(db, min_temp, max_temp, humidity, rainfall)
+    cases, risk = predict_dengue(db, month, min_temp, max_temp, humidity, rainfall)
     
     # Save the prediction in DB
     db_pred = Prediction(

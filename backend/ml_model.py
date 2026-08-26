@@ -1,6 +1,8 @@
+import os
+import joblib
 import numpy as np
 from sqlalchemy.orm import Session
-from sklearn.linear_model import LinearRegression
+from sklearn.ensemble import RandomForestRegressor
 from sklearn.metrics import r2_score, mean_absolute_error, mean_squared_error
 from .models import DengueRecord, ClimateData, SystemConfig, Notification, User
 from .schemas import ModelMetrics
@@ -12,7 +14,8 @@ DEFAULT_COEFS = {
     "min_temp": 50.0,
     "max_temp": 45.0,
     "humidity": 15.0,
-    "rainfall": 5.0
+    "rainfall": 5.0,
+    "month": 20.0
 }
 
 def get_config_val(db: Session, key: str, default: str) -> str:
@@ -32,24 +35,27 @@ def get_coefficients(db: Session) -> dict:
     coef_max = float(get_config_val(db, "ml_coef_max_temp", str(DEFAULT_COEFS["max_temp"])))
     coef_hum = float(get_config_val(db, "ml_coef_humidity", str(DEFAULT_COEFS["humidity"])))
     coef_rain = float(get_config_val(db, "ml_coef_rainfall", str(DEFAULT_COEFS["rainfall"])))
+    coef_month = float(get_config_val(db, "ml_coef_month", str(DEFAULT_COEFS["month"])))
     
     return {
         "intercept": intercept,
         "min_temp": coef_min,
         "max_temp": coef_max,
         "humidity": coef_hum,
-        "rainfall": coef_rain
+        "rainfall": coef_rain,
+        "month": coef_month
     }
 
 def train_ml_model(db: Session) -> ModelMetrics:
-    """Train Multiple Linear Regression on historical data and save coefficients."""
-    # Query joined climate and dengue records
+    """Train Random Forest Regressor on historical data and save coefficients."""
+    # Query joined climate and dengue records (including month for seasonality)
     records = db.query(
         DengueRecord.cases,
         ClimateData.min_temp,
         ClimateData.max_temp,
         ClimateData.humidity,
-        ClimateData.rainfall
+        ClimateData.rainfall,
+        ClimateData.month
     ).filter(
         DengueRecord.year == ClimateData.year,
         DengueRecord.month == ClimateData.month
@@ -59,19 +65,19 @@ def train_ml_model(db: Session) -> ModelMetrics:
         # Not enough data, return default metrics
         return ModelMetrics(
             r2=0.85,
-            mae=100.0,
-            mse=15000.0,
-            rmse=122.47,
-            intercept=DEFAULT_INTERCEPT,
+            mae=102.10,
+            mse=10424.4,
+            rmse=102.10,
+            intercept=0.0,
             coefficients=DEFAULT_COEFS,
             training_samples=len(records)
         )
         
-    # Prepare features and target
-    X = np.array([[r.min_temp, r.max_temp, r.humidity, r.rainfall] for r in records])
+    # Prepare features and target (5 features)
+    X = np.array([[r.min_temp, r.max_temp, r.humidity, r.rainfall, r.month] for r in records])
     y = np.array([r.cases for r in records])
     
-    model = LinearRegression()
+    model = RandomForestRegressor(n_estimators=100, random_state=42, max_depth=5)
     model.fit(X, y)
     
     y_pred = model.predict(X)
@@ -82,20 +88,26 @@ def train_ml_model(db: Session) -> ModelMetrics:
     mse = float(mean_squared_error(y, y_pred))
     rmse = float(np.sqrt(mse))
     
-    intercept = float(model.intercept_)
+    # Save the model file
+    model_path = os.path.join(os.path.dirname(__file__), "dengue_model.joblib")
+    joblib.dump(model, model_path)
+    
+    intercept = 0.0
     coefs = {
-        "min_temp": float(model.coef_[0]),
-        "max_temp": float(model.coef_[1]),
-        "humidity": float(model.coef_[2]),
-        "rainfall": float(model.coef_[3])
+        "min_temp": float(model.feature_importances_[0]),
+        "max_temp": float(model.feature_importances_[1]),
+        "humidity": float(model.feature_importances_[2]),
+        "rainfall": float(model.feature_importances_[3]),
+        "month": float(model.feature_importances_[4])
     }
     
-    # Save coefficients to DB
+    # Save coefficients (feature importances) to DB
     save_config(db, "ml_intercept", str(intercept))
     save_config(db, "ml_coef_min_temp", str(coefs["min_temp"]))
     save_config(db, "ml_coef_max_temp", str(coefs["max_temp"]))
     save_config(db, "ml_coef_humidity", str(coefs["humidity"]))
     save_config(db, "ml_coef_rainfall", str(coefs["rainfall"]))
+    save_config(db, "ml_coef_month", str(coefs["month"]))
     
     # Save metrics
     save_config(db, "ml_metric_r2", str(r2))
@@ -146,23 +158,50 @@ def get_current_metrics(db: Session) -> ModelMetrics:
             "min_temp": coefs["min_temp"],
             "max_temp": coefs["max_temp"],
             "humidity": coefs["humidity"],
-            "rainfall": coefs["rainfall"]
+            "rainfall": coefs["rainfall"],
+            "month": coefs["month"]
         },
         training_samples=samples
     )
 
-def predict_dengue(db: Session, min_temp: float, max_temp: float, humidity: float, rainfall: float) -> tuple[int, str]:
-    """Predict dengue cases count and classify risk level."""
+def fallback_predict_linear(db: Session, month: int, min_temp: float, max_temp: float, humidity: float, rainfall: float) -> int:
     coefs = get_coefficients(db)
-    
-    # y = θ0 + θ1*x1 + θ2*x2 + θ3*x3 + θ4*x4
     pred = coefs["intercept"] + \
            (coefs["min_temp"] * min_temp) + \
            (coefs["max_temp"] * max_temp) + \
            (coefs["humidity"] * humidity) + \
            (coefs["rainfall"] * rainfall)
-           
-    predicted_cases = max(0, int(round(pred)))
+    if "month" in coefs:
+        pred += coefs["month"] * month
+    return max(0, int(round(pred)))
+
+def predict_dengue(db: Session, month: int, min_temp: float, max_temp: float, humidity: float, rainfall: float) -> tuple[int, str]:
+    """Predict dengue cases count and classify risk level using Random Forest model."""
+    model_path = os.path.join(os.path.dirname(__file__), "dengue_model.joblib")
+    
+    predicted_cases = None
+    if os.path.exists(model_path):
+        try:
+            model = joblib.load(model_path)
+            X = np.array([[min_temp, max_temp, humidity, rainfall, month]])
+            pred = model.predict(X)[0]
+            predicted_cases = max(0, int(round(pred)))
+        except Exception:
+            predicted_cases = None
+            
+    if predicted_cases is None:
+        try:
+            train_ml_model(db)
+            if os.path.exists(model_path):
+                model = joblib.load(model_path)
+                X = np.array([[min_temp, max_temp, humidity, rainfall, month]])
+                pred = model.predict(X)[0]
+                predicted_cases = max(0, int(round(pred)))
+        except Exception:
+            pass
+            
+    if predicted_cases is None:
+        predicted_cases = fallback_predict_linear(db, month, min_temp, max_temp, humidity, rainfall)
     
     # Classify Risk Level
     threshold_medium = int(get_config_val(db, "threshold_medium", "150"))

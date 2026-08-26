@@ -23,7 +23,7 @@ def generate_report_pdf(db: Session, year: int, month: int, inspector_name: str)
         min_t, max_t, hum, rain = 22.0, 31.0, 78.0, 10.0
         
     # 2. Predict cases and risk
-    predicted_cases, risk_level = predict_dengue(db, min_t, max_t, hum, rain)
+    predicted_cases, risk_level = predict_dengue(db, month, min_t, max_t, hum, rain)
     metrics = get_current_metrics(db)
     
     # 3. Calculate Resource Allocations
