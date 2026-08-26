@@ -81,7 +81,7 @@ Dengue-Outbreak-Prediction/
 
 1. **Predictive Analytics:** Runs a Random Forest Regressor (R² ~ 0.87) incorporating cyclic seasonality (month sine/cosine) and interaction features (temperature difference, rain-humidity ratio) to forecast monthly dengue cases based on weather variables.
 2. **Interactive Risk Map:** Color-coded SVG boundary map representing Dhaka Zones with dynamically scaled warning levels (Low, Medium, High).
-3. **Live Weather Sync:** A dedicated status bar and automated form-filler that queries Dhaka's live meteorology conditions from Open-Meteo.
+3. **Live Weather Sync:** A dedicated status bar and automated form-filler that queries live meteorological conditions from the Open-Meteo API for Dhaka, Jamalpur, Chittagong, and Sylhet.
 4. **Surge Calculator:** Automatically computes hospital bed allocations, Paracetamol tablets, IV fluid bags, and blood/platelet needs according to predicted cases.
 5. **PDF Report Downloader:** Standardized health administrator summaries containing charts, predictions, and recommendations.
 6. **Multi-Role Security:**
