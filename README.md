@@ -92,6 +92,52 @@ Dengue-Outbreak-Prediction/
 
 ---
 
+## 📊 Dataset
+
+Located under `Dataset/`:
+- `DengueAndClimateBangladesh.csv` — historical monthly climate variables (temperature, rainfall, humidity, etc.) paired with recorded dengue case counts.
+- `DengueOutbreakPrediction_.xlsx` — the same data in spreadsheet form for manual inspection/analysis.
+
+Exploratory analysis outputs are saved at the project root:
+- `dengue_feature_analysis.png`, `dengue_mlr_analysis.png`, `dengue_seasonal_analysis.png`
+
+---
+
+## 🧪 Model Evolution (`Old_Models/`)
+
+This folder preserves the modeling history leading up to the current Random Forest approach:
+
+- **`Simple_Linear_Regression/`** — the original baseline model (Jupyter notebook), plus a written report (`Dengue_Prediction_Report.pdf`) and its LaTeX/Overleaf source.
+- **`multi-linear regression/model.py`** — a follow-up multi-linear regression experiment that informed the feature engineering used in the current production model (`backend/ml_model.py`).
+
+These are kept for reference and are **not** used by the running application.
+
+---
+
+## 🔌 API Overview
+
+All endpoints are prefixed with `/api`. Selected routes:
+
+| Method | Endpoint | Purpose |
+|---|---|---|
+| POST | `/api/auth/register` | Register a new (public) user |
+| POST | `/api/auth/login` | Authenticate and receive a JWT |
+| GET/PUT | `/api/admin/users`, `/api/admin/users/{id}/role`, `/api/admin/users/{id}/status` | Admin user management |
+| GET/POST/DELETE | `/api/records/climate`, `/api/records/dengue` | Climate & dengue record CRUD (Inspector/Admin) |
+| POST | `/api/predictions/predict` | Run the model on given inputs |
+| GET | `/api/predictions/history` | Past predictions |
+| GET | `/api/notifications` | Simulated SMS/Email alert log |
+| GET/POST | `/api/admin/metrics`, `/api/admin/retrain` | Model performance metrics & retraining |
+| GET/PUT | `/api/admin/config`, `/api/admin/config/{key}` | Alert threshold / system configuration |
+| GET | `/api/admin/logs` | Audit log |
+| GET | `/api/weather/current`, `/api/weather/realtime` | Live weather via Open-Meteo |
+| GET | `/api/dashboard/summary` | Aggregated dashboard stats |
+| GET | `/api/reports/pdf` | Download the generated PDF report |
+
+The catch-all `GET /{full_path:path}` route serves the built React SPA (`frontend/dist`) for any non-API path.
+
+---
+
 ## 🚀 How to Run Locally
 
 You can launch the entire unified application (installing requirements, building frontend, seeding database, and starting backend) in a single command:
@@ -101,4 +147,5 @@ You can launch the entire unified application (installing requirements, building
    ```bash
    python run.py
    ```
+---
 3. Open your browser and navigate to: **`http://localhost:8000`**
