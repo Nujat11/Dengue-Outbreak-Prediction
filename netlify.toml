@@ -1,14 +1,11 @@
 # Netlify configuration file for Dengue Outbreak Prediction
 
 [build]
-  # The directory where Netlify will run npm install and npm run build
-  base = "frontend"
+  # Build from the root by going into the frontend folder, installing, and building
+  command = "cd frontend && npm install && npm run build"
 
-  # The command Netlify runs to build the project
-  command = "npm run build"
-
-  # The directory Netlify will publish (relative to the base directory)
-  publish = "dist"
+  # Publish the dist folder inside the frontend subdirectory
+  publish = "frontend/dist"
 
 # Handles React Single Page Application (SPA) routing redirects
 [[redirects]]
