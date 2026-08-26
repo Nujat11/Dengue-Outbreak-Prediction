@@ -184,18 +184,7 @@ export default function LoginRegister({ onLoginSuccess, onBack }: LoginRegisterP
           </button>
         </div>
 
-        {/* Demo credentials tip */}
-        {isLogin && (
-          <div className="bg-slate-50 border border-slate-100 p-3.5 rounded-lg text-[10px] text-slate-400 font-medium space-y-1">
-            <p className="font-bold text-slate-500 flex items-center space-x-1">
-              <UserPlus size={10} className="text-slate-400" />
-              <span>Demo Accounts for Testing:</span>
-            </p>
-            <p>• Admin Access: <span className="font-bold font-mono text-slate-600">admin</span> / <span className="font-bold font-mono text-slate-600">admin123</span></p>
-            <p>• Inspector Access: <span className="font-bold font-mono text-slate-600">inspector</span> / <span className="font-bold font-mono text-slate-600">inspector123</span></p>
-            <p>• Public Access: <span className="font-bold font-mono text-slate-600">user</span> / <span className="font-bold font-mono text-slate-600">user123</span></p>
-          </div>
-        )}
+
 
       </div>
     </div>
